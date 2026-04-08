@@ -1,0 +1,2577 @@
+1: <!DOCTYPE html>
+2: <html lang="id">
+3: 
+4: <head>
+5:   <meta charset="UTF-8" />
+6:   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+7:   <title>NexaCRM — Aktivitas</title>
+8:   <link
+9:     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+10:     rel="stylesheet" />
+11:   <script src="https://cdn.tailwindcss.com"></script>
+12:   <style>
+13:     :root {
+14:       --primary: #3B5BDB;
+15:       --primary-light: #EEF2FF;
+16:       --primary-dark: #2F4AC7;
+17:       --sidebar-bg: #0F172A;
+18:       --sidebar-text: #94A3B8;
+19:       --success: #0E9F6E;
+20:       --warning: #E3A008;
+21:       --danger: #F05252;
+22:       --surface: #F8FAFC;
+23:       --card: #FFFFFF;
+24:       --border: #E2E8F0;
+25:       --text-primary: #0F172A;
+26:       --text-secondary: #64748B;
+27:       --text-muted: #94A3B8;
+28:       /* activity type colors */
+29:       --c-visit: #0E9F6E;
+30:       --c-call: #3B5BDB;
+31:       --c-wa: #16A34A;
+32:       --c-email: #D97706;
+33:       --c-meeting: #7C3AED;
+34:       --c-demo: #0694A2;
+35:       /* todo colors */
+36:       --c-todo: #F05252;
+37:       --c-agenda: #E3A008;
+38:     }
+39: 
+40:     * {
+41:       margin: 0;
+42:       padding: 0;
+43:       box-sizing: border-box;
+44:     }
+45: 
+46:     body {
+47:       font-family: 'Poppins', sans-serif;
+48:       background: var(--surface);
+49:       color: var(--text-primary);
+50:       overflow-x: hidden;
+51:     }
+52: 
+53:     /* ── SIDEBAR ── */
+54:     .sidebar {
+55:       position: fixed;
+56:       left: 0;
+57:       top: 0;
+58:       height: 100vh;
+59:       width: 260px;
+60:       background: var(--sidebar-bg);
+61:       display: flex;
+62:       flex-direction: column;
+63:       z-index: 100;
+64:       transition: width .3s cubic-bezier(.4, 0, .2, 1);
+65:       border-right: 1px solid rgba(255, 255, 255, .05);
+66:     }
+67: 
+68:     .sidebar.collapsed {
+69:       width: 68px;
+70:     }
+71: 
+72:     .sidebar-logo {
+73:       padding: 20px 20px 16px;
+74:       display: flex;
+75:       align-items: center;
+76:       gap: 10px;
+77:       border-bottom: 1px solid rgba(255, 255, 255, .06);
+78:       min-height: 64px;
+79:     }
+80: 
+81:     .logo-icon {
+82:       width: 36px;
+83:       height: 36px;
+84:       border-radius: 10px;
+85:       flex-shrink: 0;
+86:       background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+87:       display: flex;
+88:       align-items: center;
+89:       justify-content: center;
+90:       font-size: 16px;
+91:       font-weight: 800;
+92:       color: #fff;
+93:     }
+94: 
+95:     .logo-text {
+96:       font-size: 17px;
+97:       font-weight: 800;
+98:       color: #fff;
+99:       letter-spacing: -.5px;
+100:       white-space: nowrap;
+101:       overflow: hidden;
+102:       transition: opacity .2s;
+103:     }
+104: 
+105:     .logo-sub {
+106:       font-size: 10px;
+107:       color: var(--sidebar-text);
+108:       font-weight: 500;
+109:       letter-spacing: .5px;
+110:       text-transform: uppercase;
+111:     }
+112: 
+113:     .sidebar.collapsed .logo-text,
+114:     .sidebar.collapsed .logo-sub {
+115:       opacity: 0;
+116:       width: 0;
+117:     }
+118: 
+119:     .sidebar-section-label {
+120:       font-size: 10px;
+121:       font-weight: 700;
+122:       letter-spacing: 1.5px;
+123:       text-transform: uppercase;
+124:       color: rgba(148, 163, 184, .4);
+125:       padding: 16px 20px 6px;
+126:       white-space: nowrap;
+127:       overflow: hidden;
+128:       transition: opacity .2s;
+129:     }
+130: 
+131:     .sidebar.collapsed .sidebar-section-label {
+132:       opacity: 0;
+133:     }
+134: 
+135:     .sidebar-nav {
+136:       flex: 1;
+137:       overflow-y: auto;
+138:       padding: 8px 12px;
+139:       overflow-x: hidden;
+140:     }
+141: 
+142:     .sidebar-nav::-webkit-scrollbar {
+143:       width: 3px;
+144:     }
+145: 
+146:     .sidebar-nav::-webkit-scrollbar-thumb {
+147:       background: rgba(255, 255, 255, .1);
+148:       border-radius: 10px;
+149:     }
+150: 
+151:     .nav-item {
+152:       display: flex;
+153:       align-items: center;
+154:       gap: 12px;
+155:       padding: 10px 12px;
+156:       border-radius: 10px;
+157:       cursor: pointer;
+158:       transition: all .2s;
+159:       color: var(--sidebar-text);
+160:       font-size: 14px;
+161:       font-weight: 500;
+162:       white-space: nowrap;
+163:       overflow: hidden;
+164:       margin-bottom: 2px;
+165:       position: relative;
+166:       text-decoration: none;
+167:     }
+168: 
+169:     .nav-item:hover {
+170:       background: rgba(255, 255, 255, .06);
+171:       color: #fff;
+172:     }
+173: 
+174:     .nav-item.active {
+175:       background: linear-gradient(135deg, rgba(59, 91, 219, .3), rgba(124, 58, 237, .2));
+176:       color: #fff;
+177:       box-shadow: inset 0 0 0 1px rgba(59, 91, 219, .4);
+178:     }
+179: 
+180:     .nav-item.active::before {
+181:       content: '';
+182:       position: absolute;
+183:       left: 0;
+184:       top: 50%;
+185:       transform: translateY(-50%);
+186:       width: 3px;
+187:       height: 60%;
+188:       background: var(--primary);
+189:       border-radius: 0 4px 4px 0;
+190:     }
+191: 
+192:     .nav-icon {
+193:       width: 20px;
+194:       height: 20px;
+195:       flex-shrink: 0;
+196:       opacity: .8;
+197:     }
+198: 
+199:     .nav-item.active .nav-icon {
+200:       opacity: 1;
+201:     }
+202: 
+203:     .nav-label {
+204:       transition: opacity .2s;
+205:     }
+206: 
+207:     .sidebar.collapsed .nav-label {
+208:       opacity: 0;
+209:       width: 0;
+210:     }
+211: 
+212:     .nav-badge {
+213:       margin-left: auto;
+214:       background: #F05252;
+215:       color: #fff;
+216:       font-size: 10px;
+217:       font-weight: 700;
+218:       padding: 1px 6px;
+219:       border-radius: 20px;
+220:       flex-shrink: 0;
+221:       transition: opacity .2s;
+222:     }
+223: 
+224:     .sidebar.collapsed .nav-badge {
+225:       opacity: 0;
+226:     }
+227: 
+228:     .sidebar-footer {
+229:       padding: 12px;
+230:       border-top: 1px solid rgba(255, 255, 255, .06);
+231:     }
+232: 
+233:     .user-card {
+234:       display: flex;
+235:       align-items: center;
+236:       gap: 10px;
+237:       padding: 10px 12px;
+238:       border-radius: 10px;
+239:       cursor: pointer;
+240:       transition: all .2s;
+241:       overflow: hidden;
+242:     }
+243: 
+244:     .user-card:hover {
+245:       background: rgba(255, 255, 255, .06);
+246:     }
+247: 
+248:     .user-avatar {
+249:       width: 34px;
+250:       height: 34px;
+251:       border-radius: 10px;
+252:       flex-shrink: 0;
+253:       background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+254:       display: flex;
+255:       align-items: center;
+256:       justify-content: center;
+257:       font-size: 13px;
+258:       font-weight: 700;
+259:       color: #fff;
+260:     }
+261: 
+262:     .user-name {
+263:       font-size: 13px;
+264:       font-weight: 600;
+265:       color: #fff;
+266:       white-space: nowrap;
+267:     }
+268: 
+269:     .user-role {
+270:       font-size: 11px;
+271:       color: var(--sidebar-text);
+272:       white-space: nowrap;
+273:     }
+274: 
+275:     .sidebar.collapsed .user-info {
+276:       opacity: 0;
+277:       width: 0;
+278:     }
+279: 
+280:     /* ── TOPBAR ── */
+281:     .topbar {
+282:       position: fixed;
+283:       left: 260px;
+284:       top: 0;
+285:       right: 0;
+286:       height: 64px;
+287:       background: rgba(248, 250, 252, .92);
+288:       backdrop-filter: blur(12px);
+289:       border-bottom: 1px solid var(--border);
+290:       display: flex;
+291:       align-items: center;
+292:       padding: 0 24px;
+293:       gap: 16px;
+294:       z-index: 90;
+295:       transition: left .3s cubic-bezier(.4, 0, .2, 1);
+296:     }
+297: 
+298:     .topbar.expanded {
+299:       left: 68px;
+300:     }
+301: 
+302:     .toggle-btn {
+303:       width: 36px;
+304:       height: 36px;
+305:       border-radius: 9px;
+306:       border: 1px solid var(--border);
+307:       background: #fff;
+308:       cursor: pointer;
+309:       display: flex;
+310:       align-items: center;
+311:       justify-content: center;
+312:       transition: all .2s;
+313:       flex-shrink: 0;
+314:     }
+315: 
+316:     .toggle-btn:hover {
+317:       background: var(--primary-light);
+318:       border-color: var(--primary);
+319:     }
+320: 
+321:     .breadcrumb {
+322:       display: flex;
+323:       align-items: center;
+324:       gap: 6px;
+325:       flex: 1;
+326:     }
+327: 
+328:     .breadcrumb span {
+329:       font-size: 13px;
+330:       color: var(--text-secondary);
+331:     }
+332: 
+333:     .breadcrumb .current {
+334:       font-size: 13px;
+335:       font-weight: 600;
+336:       color: var(--text-primary);
+337:     }
+338: 
+339:     .search-bar {
+340:       display: flex;
+341:       align-items: center;
+342:       gap: 8px;
+343:       background: #fff;
+344:       border: 1px solid var(--border);
+345:       border-radius: 10px;
+346:       padding: 0 14px;
+347:       height: 38px;
+348:       width: 240px;
+349:       transition: all .2s;
+350:     }
+351: 
+352:     .search-bar:focus-within {
+353:       border-color: var(--primary);
+354:       box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+355:     }
+356: 
+357:     .search-bar input {
+358:       border: none;
+359:       outline: none;
+360:       background: transparent;
+361:       font-size: 13px;
+362:       font-family: inherit;
+363:       color: var(--text-primary);
+364:       width: 100%;
+365:     }
+366: 
+367:     .search-bar input::placeholder {
+368:       color: var(--text-muted);
+369:     }
+370: 
+371:     .topbar-actions {
+372:       display: flex;
+373:       align-items: center;
+374:       gap: 8px;
+375:     }
+376: 
+377:     .icon-btn {
+378:       width: 38px;
+379:       height: 38px;
+380:       border-radius: 10px;
+381:       border: 1px solid var(--border);
+382:       background: #fff;
+383:       cursor: pointer;
+384:       display: flex;
+385:       align-items: center;
+386:       justify-content: center;
+387:       transition: all .2s;
+388:       position: relative;
+389:     }
+390: 
+391:     .icon-btn:hover {
+392:       background: var(--primary-light);
+393:       border-color: var(--primary);
+394:     }
+395: 
+396:     .notif-dot {
+397:       position: absolute;
+398:       top: 7px;
+399:       right: 7px;
+400:       width: 8px;
+401:       height: 8px;
+402:       background: #F05252;
+403:       border-radius: 50%;
+404:       border: 2px solid #fff;
+405:     }
+406: 
+407:     .topbar-user {
+408:       display: flex;
+409:       align-items: center;
+410:       gap: 10px;
+411:       padding: 6px 12px;
+412:       border-radius: 10px;
+413:       cursor: pointer;
+414:       transition: all .2s;
+415:       border: 1px solid transparent;
+416:     }
+417: 
+418:     .topbar-user:hover {
+419:       background: #fff;
+420:       border-color: var(--border);
+421:     }
+422: 
+423:     .topbar-avatar {
+424:       width: 32px;
+425:       height: 32px;
+426:       border-radius: 8px;
+427:       background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+428:       display: flex;
+429:       align-items: center;
+430:       justify-content: center;
+431:       font-size: 12px;
+432:       font-weight: 700;
+433:       color: #fff;
+434:     }
+435: 
+436:     .topbar-uname {
+437:       font-size: 13px;
+438:       font-weight: 600;
+439:       color: var(--text-primary);
+440:     }
+441: 
+442:     .topbar-urole {
+443:       font-size: 11px;
+444:       color: var(--text-secondary);
+445:     }
+446: 
+447:     /* ── MAIN ── */
+448:     .main {
+449:       margin-left: 260px;
+450:       padding-top: 64px;
+451:       min-height: 100vh;
+452:       transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+453:     }
+454: 
+455:     .main.expanded {
+456:       margin-left: 68px;
+457:     }
+458: 
+459:     .content {
+460:       padding: 28px;
+461:     }
+462: 
+463:     /* ── BUTTONS ── */
+464:     .btn {
+465:       display: inline-flex;
+466:       align-items: center;
+467:       gap: 7px;
+468:       padding: 9px 18px;
+469:       border-radius: 10px;
+470:       font-size: 13px;
+471:       font-weight: 600;
+472:       font-family: inherit;
+473:       cursor: pointer;
+474:       transition: all .2s;
+475:       border: none;
+476:       text-decoration: none;
+477:     }
+478: 
+479:     .btn-primary {
+480:       background: var(--primary);
+481:       color: #fff;
+482:       box-shadow: 0 1px 3px rgba(59, 91, 219, .3);
+483:     }
+484: 
+485:     .btn-primary:hover {
+486:       background: var(--primary-dark);
+487:       box-shadow: 0 4px 12px rgba(59, 91, 219, .35);
+488:       transform: translateY(-1px);
+489:     }
+490: 
+491:     .btn-outline {
+492:       background: #fff;
+493:       color: var(--text-primary);
+494:       border: 1px solid var(--border);
+495:     }
+496: 
+497:     .btn-outline:hover {
+498:       border-color: var(--primary);
+499:       color: var(--primary);
+500:       background: var(--primary-light);
+501:     }
+502: 
+503:     .btn-sm {
+504:       padding: 7px 14px;
+505:       font-size: 12px;
+506:       border-radius: 8px;
+507:     }
+508: 
+509:     .btn-xs {
+510:       padding: 5px 10px;
+511:       font-size: 11px;
+512:       border-radius: 7px;
+513:     }
+514: 
+515:     .btn-ghost {
+516:       background: transparent;
+517:       border: none;
+518:       color: var(--text-secondary);
+519:       cursor: pointer;
+520:       padding: 6px;
+521:       border-radius: 8px;
+522:     }
+523: 
+524:     .btn-ghost:hover {
+525:       background: #F1F5F9;
+526:       color: var(--text-primary);
+527:     }
+528: 
+529:     /* ── VIEW TOGGLE ── */
+530:     .view-toggle {
+531:       display: flex;
+532:       background: #F8FAFC;
+533:       border: 1px solid var(--border);
+534:       border-radius: 9px;
+535:       padding: 3px;
+536:     }
+537: 
+538:     .vt-btn {
+539:       padding: 6px 14px;
+540:       border-radius: 7px;
+541:       cursor: pointer;
+542:       border: none;
+543:       background: transparent;
+544:       font-size: 13px;
+545:       font-weight: 600;
+546:       transition: all .2s;
+547:       color: var(--text-secondary);
+548:       display: flex;
+549:       align-items: center;
+550:       gap: 5px;
+551:       font-family: inherit;
+552:     }
+553: 
+554:     .vt-btn.active {
+555:       background: #fff;
+556:       color: var(--text-primary);
+557:       box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+558:     }
+559: 
+560:     /* ── LEGEND ── */
+561:     .legend-dot {
+562:       width: 10px;
+563:       height: 10px;
+564:       border-radius: 3px;
+565:       flex-shrink: 0;
+566:     }
+567: 
+568:     .legend-item {
+569:       display: flex;
+570:       align-items: center;
+571:       gap: 6px;
+572:       font-size: 12px;
+573:       color: var(--text-secondary);
+574:     }
+575: 
+576:     /* ── CALENDAR ── */
+577:     .cal-wrap {
+578:       background: var(--card);
+579:       border-radius: 14px;
+580:       border: 1px solid var(--border);
+581:       overflow: hidden;
+582:       box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+583:     }
+584: 
+585:     .cal-header {
+586:       display: flex;
+587:       align-items: center;
+588:       justify-content: space-between;
+589:       padding: 18px 22px;
+590:       border-bottom: 1px solid var(--border);
+591:     }
+592: 
+593:     .cal-title {
+594:       font-size: 17px;
+595:       font-weight: 800;
+596:       letter-spacing: -.4px;
+597:     }
+598: 
+599:     .cal-nav {
+600:       display: flex;
+601:       align-items: center;
+602:       gap: 8px;
+603:     }
+604: 
+605:     .cal-nav-btn {
+606:       width: 32px;
+607:       height: 32px;
+608:       border-radius: 8px;
+609:       border: 1px solid var(--border);
+610:       background: #fff;
+611:       cursor: pointer;
+612:       display: flex;
+613:       align-items: center;
+614:       justify-content: center;
+615:       font-size: 16px;
+616:       transition: all .2s;
+617:       color: var(--text-secondary);
+618:     }
+619: 
+620:     .cal-nav-btn:hover {
+621:       border-color: var(--primary);
+622:       color: var(--primary);
+623:       background: var(--primary-light);
+624:     }
+625: 
+626:     .cal-today-btn {
+627:       padding: 6px 14px;
+628:       border-radius: 8px;
+629:       border: 1px solid var(--border);
+630:       background: #fff;
+631:       font-size: 12px;
+632:       font-weight: 600;
+633:       cursor: pointer;
+634:       transition: all .2s;
+635:       font-family: inherit;
+636:     }
+637: 
+638:     .cal-today-btn:hover {
+639:       border-color: var(--primary);
+640:       color: var(--primary);
+641:       background: var(--primary-light);
+642:     }
+643: 
+644:     /* ── MONTH VIEW ── */
+645:     .cal-grid-head {
+646:       display: grid;
+647:       grid-template-columns: repeat(7, 1fr);
+648:       background: #F8FAFC;
+649:       border-bottom: 1px solid var(--border);
+650:     }
+651: 
+652:     .cal-day-name {
+653:       padding: 10px 0;
+654:       text-align: center;
+655:       font-size: 11px;
+656:       font-weight: 700;
+657:       text-transform: uppercase;
+658:       letter-spacing: .8px;
+659:       color: var(--text-secondary);
+660:     }
+661: 
+662:     .cal-day-name.weekend {
+663:       color: var(--danger);
+664:     }
+665: 
+666:     .cal-grid {
+667:       display: grid;
+668:       grid-template-columns: repeat(7, 1fr);
+669:     }
+670: 
+671:     .cal-cell {
+672:       min-height: 110px;
+673:       border-right: 1px solid #F1F5F9;
+674:       border-bottom: 1px solid #F1F5F9;
+675:       padding: 8px 6px 6px;
+676:       position: relative;
+677:       transition: background .15s;
+678:       cursor: pointer;
+679:     }
+680: 
+681:     .cal-cell:nth-child(7n) {
+682:       border-right: none;
+683:     }
+684: 
+685:     .cal-cell:hover {
+686:       background: #FAFBFF;
+687:     }
+688: 
+689:     .cal-cell.other-month {
+690:       background: #FAFBFF;
+691:     }
+692: 
+693:     .cal-cell.other-month .cal-date-num {
+694:       color: var(--text-muted);
+695:     }
+696: 
+697:     .cal-cell.today {
+698:       background: #EEF2FF;
+699:     }
+700: 
+701:     .cal-cell.today .cal-date-num {
+702:       background: var(--primary);
+703:       color: #fff;
+704:       border-radius: 50%;
+705:     }
+706: 
+707:     .cal-cell.selected {
+708:       background: #EEF2FF;
+709:       outline: 2px solid var(--primary);
+710:       outline-offset: -1px;
+711:     }
+712: 
+713:     .cal-date-num {
+714:       width: 26px;
+715:       height: 26px;
+716:       display: flex;
+717:       align-items: center;
+718:       justify-content: center;
+719:       font-size: 13px;
+720:       font-weight: 700;
+721:       color: var(--text-primary);
+722:       margin-bottom: 4px;
+723:       flex-shrink: 0;
+724:       border-radius: 50%;
+725:     }
+726: 
+727:     .cal-event {
+728:       font-size: 11px;
+729:       font-weight: 600;
+730:       padding: 2px 6px;
+731:       border-radius: 5px;
+732:       margin-bottom: 2px;
+733:       overflow: hidden;
+734:       text-overflow: ellipsis;
+735:       white-space: nowrap;
+736:       cursor: pointer;
+737:       transition: opacity .15s;
+738:       display: block;
+739:     }
+740: 
+741:     .cal-event:hover {
+742:       opacity: .8;
+743:     }
+744: 
+745:     .cal-more {
+746:       font-size: 10px;
+747:       font-weight: 600;
+748:       color: var(--primary);
+749:       cursor: pointer;
+750:       padding: 1px 4px;
+751:     }
+752: 
+753:     /* event type colors */
+754:     .ev-visit {
+755:       background: rgba(14, 159, 110, .15);
+756:       color: #0E9F6E;
+757:     }
+758: 
+759:     .ev-call {
+760:       background: rgba(59, 91, 219, .15);
+761:       color: #3B5BDB;
+762:     }
+763: 
+764:     .ev-wa {
+765:       background: rgba(22, 163, 74, .15);
+766:       color: #16A34A;
+767:     }
+768: 
+769:     .ev-email {
+770:       background: rgba(217, 119, 6, .15);
+771:       color: #D97706;
+772:     }
+773: 
+774:     .ev-meeting {
+775:       background: rgba(124, 58, 237, .15);
+776:       color: #7C3AED;
+777:     }
+778: 
+779:     .ev-demo {
+780:       background: rgba(6, 148, 162, .15);
+781:       color: #0694A2;
+782:     }
+783: 
+784:     .ev-todo {
+785:       background: rgba(240, 82, 82, .15);
+786:       color: #F05252;
+787:     }
+788: 
+789:     .ev-agenda {
+790:       background: rgba(227, 160, 8, .15);
+791:       color: #D97706;
+792:     }
+793: 
+794:     /* ── WEEK VIEW ── */
+795:     .week-grid {
+796:       display: grid;
+797:       grid-template-columns: 60px repeat(7, 1fr);
+798:     }
+799: 
+800:     .week-time-col {
+801:       border-right: 1px solid var(--border);
+802:     }
+803: 
+804:     .week-time-slot {
+805:       height: 56px;
+806:       display: flex;
+807:       align-items: flex-start;
+808:       justify-content: flex-end;
+809:       padding: 4px 10px 0 0;
+810:       font-size: 11px;
+811:       color: var(--text-muted);
+812:       font-family: 'JetBrains Mono', monospace;
+813:       border-bottom: 1px solid #F8FAFC;
+814:     }
+815: 
+816:     .week-day-col {
+817:       border-right: 1px solid #F1F5F9;
+818:       min-height: 560px;
+819:       position: relative;
+820:     }
+821: 
+822:     .week-day-col:last-child {
+823:       border-right: none;
+824:     }
+825: 
+826:     .week-day-header {
+827:       padding: 10px 8px;
+828:       text-align: center;
+829:       border-bottom: 1px solid var(--border);
+830:       background: #F8FAFC;
+831:     }
+832: 
+833:     .week-day-name {
+834:       font-size: 10px;
+835:       font-weight: 700;
+836:       text-transform: uppercase;
+837:       letter-spacing: .8px;
+838:       color: var(--text-secondary);
+839:     }
+840: 
+841:     .week-day-num {
+842:       font-size: 18px;
+843:       font-weight: 800;
+844:       letter-spacing: -.5px;
+845:       color: var(--text-primary);
+846:       line-height: 1.2;
+847:     }
+848: 
+849:     .week-day-num.today {
+850:       background: var(--primary);
+851:       color: #fff;
+852:       border-radius: 50%;
+853:       width: 34px;
+854:       height: 34px;
+855:       display: flex;
+856:       align-items: center;
+857:       justify-content: center;
+858:       margin: 0 auto;
+859:     }
+860: 
+861:     .week-event {
+862:       position: absolute;
+863:       left: 3px;
+864:       right: 3px;
+865:       border-radius: 7px;
+866:       padding: 4px 7px;
+867:       font-size: 11px;
+868:       font-weight: 600;
+869:       cursor: pointer;
+870:       overflow: hidden;
+871:       transition: opacity .15s;
+872:       z-index: 2;
+873:     }
+874: 
+875:     .week-event:hover {
+876:       opacity: .85;
+877:     }
+878: 
+879:     .week-slot-row {
+880:       height: 56px;
+881:       border-bottom: 1px solid #F8FAFC;
+882:       position: relative;
+883:     }
+884: 
+885:     .week-current-time {
+886:       position: absolute;
+887:       left: 0;
+888:       right: 0;
+889:       height: 2px;
+890:       background: #F05252;
+891:       z-index: 3;
+892:     }
+893: 
+894:     .week-current-time::before {
+895:       content: '';
+896:       position: absolute;
+897:       left: -4px;
+898:       top: -4px;
+899:       width: 10px;
+900:       height: 10px;
+901:       border-radius: 50%;
+902:       background: #F05252;
+903:     }
+904: 
+905:     /* ── LIST VIEW ── */
+906:     .list-day-group {
+907:       margin-bottom: 20px;
+908:     }
+909: 
+910:     .list-day-label {
+911:       font-size: 13px;
+912:       font-weight: 700;
+913:       color: var(--text-secondary);
+914:       padding: 8px 0 10px;
+915:       display: flex;
+916:       align-items: center;
+917:       gap: 10px;
+918:     }
+919: 
+920:     .list-day-label::after {
+921:       content: '';
+922:       flex: 1;
+923:       height: 1px;
+924:       background: var(--border);
+925:     }
+926: 
+927:     .list-day-label.today-label {
+928:       color: var(--primary);
+929:     }
+930: 
+931:     .list-item {
+932:       background: var(--card);
+933:       border: 1px solid var(--border);
+934:       border-radius: 12px;
+935:       padding: 14px 16px;
+936:       margin-bottom: 8px;
+937:       display: flex;
+938:       align-items: flex-start;
+939:       gap: 14px;
+940:       cursor: pointer;
+941:       transition: all .2s;
+942:     }
+943: 
+944:     .list-item:hover {
+945:       border-color: rgba(59, 91, 219, .2);
+946:       box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+947:       transform: translateX(2px);
+948:     }
+949: 
+950:     .list-item.overdue {
+951:       border-color: #FECACA;
+952:       background: #FEF2F2;
+953:     }
+954: 
+955:     .list-icon {
+956:       width: 38px;
+957:       height: 38px;
+958:       border-radius: 10px;
+959:       display: flex;
+960:       align-items: center;
+961:       justify-content: center;
+962:       font-size: 17px;
+963:       flex-shrink: 0;
+964:     }
+965: 
+966:     .list-body {
+967:       flex: 1;
+968:     }
+969: 
+970:     .list-title {
+971:       font-size: 13px;
+972:       font-weight: 700;
+973:       color: var(--text-primary);
+974:     }
+975: 
+976:     .list-sub {
+977:       font-size: 12px;
+978:       color: var(--text-secondary);
+979:       margin-top: 2px;
+980:     }
+981: 
+982:     .list-meta {
+983:       display: flex;
+984:       align-items: center;
+985:       gap: 8px;
+986:       margin-top: 6px;
+987:       flex-wrap: wrap;
+988:     }
+989: 
+990:     .list-time {
+991:       font-size: 11px;
+992:       color: var(--text-muted);
+993:       font-family: 'JetBrains Mono', monospace;
+994:     }
+995: 
+996:     .list-badge {
+997:       font-size: 10px;
+998:       font-weight: 700;
+999:       padding: 2px 8px;
+1000:       border-radius: 20px;
+1001:     }
+1002: 
+1003:     .lbg-visit {
+1004:       background: rgba(14, 159, 110, .12);
+1005:       color: #0E9F6E;
+1006:     }
+1007: 
+1008:     .lbg-call {
+1009:       background: rgba(59, 91, 219, .12);
+1010:       color: #3B5BDB;
+1011:     }
+1012: 
+1013:     .lbg-wa {
+1014:       background: rgba(22, 163, 74, .12);
+1015:       color: #16A34A;
+1016:     }
+1017: 
+1018:     .lbg-email {
+1019:       background: rgba(217, 119, 6, .12);
+1020:       color: #D97706;
+1021:     }
+1022: 
+1023:     .lbg-meeting {
+1024:       background: rgba(124, 58, 237, .12);
+1025:       color: #7C3AED;
+1026:     }
+1027: 
+1028:     .lbg-demo {
+1029:       background: rgba(6, 148, 162, .12);
+1030:       color: #0694A2;
+1031:     }
+1032: 
+1033:     .lbg-todo {
+1034:       background: rgba(240, 82, 82, .12);
+1035:       color: #F05252;
+1036:     }
+1037: 
+1038:     .lbg-agenda {
+1039:       background: rgba(227, 160, 8, .12);
+1040:       color: #D97706;
+1041:     }
+1042: 
+1043:     /* ── DAY PANEL (slide from right) ── */
+1044:     .day-panel-overlay {
+1045:       position: fixed;
+1046:       inset: 0;
+1047:       background: rgba(15, 23, 42, .3);
+1048:       z-index: 150;
+1049:       opacity: 0;
+1050:       transition: opacity .25s;
+1051:       pointer-events: none;
+1052:     }
+1053: 
+1054:     .day-panel-overlay.show {
+1055:       opacity: 1;
+1056:       pointer-events: all;
+1057:     }
+1058: 
+1059:     .day-panel {
+1060:       position: fixed;
+1061:       right: 0;
+1062:       top: 0;
+1063:       height: 100vh;
+1064:       width: 400px;
+1065:       max-width: 96vw;
+1066:       background: #fff;
+1067:       z-index: 160;
+1068:       box-shadow: -8px 0 40px rgba(0, 0, 0, .12);
+1069:       transform: translateX(100%);
+1070:       transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+1071:       display: flex;
+1072:       flex-direction: column;
+1073:     }
+1074: 
+1075:     .day-panel.open {
+1076:       transform: translateX(0);
+1077:     }
+1078: 
+1079:     .day-panel-header {
+1080:       padding: 18px 20px;
+1081:       border-bottom: 1px solid var(--border);
+1082:       display: flex;
+1083:       align-items: center;
+1084:       justify-content: space-between;
+1085:       flex-shrink: 0;
+1086:     }
+1087: 
+1088:     .day-panel-title {
+1089:       font-size: 15px;
+1090:       font-weight: 800;
+1091:       letter-spacing: -.4px;
+1092:     }
+1093: 
+1094:     .day-panel-body {
+1095:       flex: 1;
+1096:       overflow-y: auto;
+1097:       padding: 16px 20px;
+1098:     }
+1099: 
+1100:     .dp-close {
+1101:       width: 32px;
+1102:       height: 32px;
+1103:       border-radius: 8px;
+1104:       border: 1px solid var(--border);
+1105:       background: #fff;
+1106:       cursor: pointer;
+1107:       display: flex;
+1108:       align-items: center;
+1109:       justify-content: center;
+1110:       font-size: 18px;
+1111:       color: var(--text-secondary);
+1112:       transition: all .2s;
+1113:     }
+1114: 
+1115:     .dp-close:hover {
+1116:       background: #FEF2F2;
+1117:       border-color: #FECACA;
+1118:       color: #DC2626;
+1119:     }
+1120: 
+1121:     .dp-section-title {
+1122:       font-size: 11px;
+1123:       font-weight: 700;
+1124:       text-transform: uppercase;
+1125:       letter-spacing: 1px;
+1126:       color: var(--text-muted);
+1127:       margin: 14px 0 8px;
+1128:     }
+1129: 
+1130:     .dp-item {
+1131:       background: #F8FAFC;
+1132:       border: 1px solid var(--border);
+1133:       border-radius: 10px;
+1134:       padding: 12px;
+1135:       margin-bottom: 8px;
+1136:       cursor: pointer;
+1137:       transition: all .2s;
+1138:     }
+1139: 
+1140:     .dp-item:hover {
+1141:       border-color: rgba(59, 91, 219, .2);
+1142:       background: #FAFBFF;
+1143:     }
+1144: 
+1145:     .dp-item.overdue {
+1146:       background: #FEF2F2;
+1147:       border-color: #FECACA;
+1148:     }
+1149: 
+1150:     .dp-item-header {
+1151:       display: flex;
+1152:       align-items: center;
+1153:       gap: 8px;
+1154:       margin-bottom: 4px;
+1155:     }
+1156: 
+1157:     .dp-item-title {
+1158:       font-size: 13px;
+1159:       font-weight: 600;
+1160:       flex: 1;
+1161:     }
+1162: 
+1163:     .dp-item-sub {
+1164:       font-size: 12px;
+1165:       color: var(--text-secondary);
+1166:     }
+1167: 
+1168:     /* ── MODAL ── */
+1169:     .modal-overlay {
+1170:       position: fixed;
+1171:       inset: 0;
+1172:       background: rgba(15, 23, 42, .4);
+1173:       z-index: 200;
+1174:       display: flex;
+1175:       align-items: center;
+1176:       justify-content: center;
+1177:       backdrop-filter: blur(4px);
+1178:       opacity: 0;
+1179:       transition: opacity .2s;
+1180:       pointer-events: none;
+1181:     }
+1182: 
+1183:     .modal-overlay.show {
+1184:       opacity: 1;
+1185:       pointer-events: all;
+1186:     }
+1187: 
+1188:     .modal {
+1189:       background: #fff;
+1190:       border-radius: 18px;
+1191:       width: 560px;
+1192:       max-width: 96vw;
+1193:       max-height: 92vh;
+1194:       overflow-y: auto;
+1195:       box-shadow: 0 24px 64px rgba(0, 0, 0, .18);
+1196:       transform: scale(.96) translateY(12px);
+1197:       transition: all .25s cubic-bezier(.4, 0, .2, 1);
+1198:     }
+1199: 
+1200:     .modal-overlay.show .modal {
+1201:       transform: scale(1) translateY(0);
+1202:     }
+1203: 
+1204:     .modal-header {
+1205:       padding: 20px 24px;
+1206:       display: flex;
+1207:       align-items: center;
+1208:       justify-content: space-between;
+1209:       border-bottom: 1px solid var(--border);
+1210:       position: sticky;
+1211:       top: 0;
+1212:       background: #fff;
+1213:       z-index: 1;
+1214:     }
+1215: 
+1216:     .modal-title {
+1217:       font-size: 17px;
+1218:       font-weight: 800;
+1219:       letter-spacing: -.4px;
+1220:     }
+1221: 
+1222:     .modal-close-btn {
+1223:       width: 32px;
+1224:       height: 32px;
+1225:       border-radius: 8px;
+1226:       border: 1px solid var(--border);
+1227:       background: #fff;
+1228:       cursor: pointer;
+1229:       display: flex;
+1230:       align-items: center;
+1231:       justify-content: center;
+1232:       font-size: 18px;
+1233:       color: var(--text-secondary);
+1234:       transition: all .2s;
+1235:     }
+1236: 
+1237:     .modal-close-btn:hover {
+1238:       background: #FEF2F2;
+1239:       border-color: #FECACA;
+1240:       color: #DC2626;
+1241:     }
+1242: 
+1243:     .modal-body {
+1244:       padding: 20px 24px;
+1245:     }
+1246: 
+1247:     .modal-footer {
+1248:       padding: 16px 24px;
+1249:       display: flex;
+1250:       gap: 10px;
+1251:       justify-content: flex-end;
+1252:       border-top: 1px solid var(--border);
+1253:       background: #fff;
+1254:       position: sticky;
+1255:       bottom: 0;
+1256:     }
+1257: 
+1258:     .form-group {
+1259:       margin-bottom: 16px;
+1260:     }
+1261: 
+1262:     .form-label {
+1263:       font-size: 12px;
+1264:       font-weight: 600;
+1265:       color: var(--text-secondary);
+1266:       margin-bottom: 6px;
+1267:       display: block;
+1268:       text-transform: uppercase;
+1269:       letter-spacing: .5px;
+1270:     }
+1271: 
+1272:     .form-label span {
+1273:       color: #F05252;
+1274:     }
+1275: 
+1276:     .form-input {
+1277:       width: 100%;
+1278:       padding: 10px 14px;
+1279:       border-radius: 9px;
+1280:       border: 1px solid var(--border);
+1281:       font-size: 13px;
+1282:       font-family: inherit;
+1283:       color: var(--text-primary);
+1284:       transition: all .2s;
+1285:       outline: none;
+1286:       background: #fff;
+1287:     }
+1288: 
+1289:     .form-input:focus {
+1290:       border-color: var(--primary);
+1291:       box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+1292:     }
+1293: 
+1294:     .form-select {
+1295:       appearance: none;
+1296:       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+1297:       background-repeat: no-repeat;
+1298:       background-position: right 12px center;
+1299:       padding-right: 36px;
+1300:     }
+1301: 
+1302:     .form-row {
+1303:       display: grid;
+1304:       grid-template-columns: 1fr 1fr;
+1305:       gap: 14px;
+1306:     }
+1307: 
+1308:     /* ── GPS BOX ── */
+1309:     .gps-box {
+1310:       background: #F8FAFC;
+1311:       border: 1px solid var(--border);
+1312:       border-radius: 12px;
+1313:       padding: 14px;
+1314:     }
+1315: 
+1316:     .gps-box.ok {
+1317:       background: #F0FDF4;
+1318:       border-color: #BBF7D0;
+1319:     }
+1320: 
+1321:     .gps-box.near {
+1322:       background: #FFFBEB;
+1323:       border-color: #FDE68A;
+1324:     }
+1325: 
+1326:     .gps-box.fail {
+1327:       background: #FEF2F2;
+1328:       border-color: #FECACA;
+1329:     }
+1330: 
+1331:     .gps-row {
+1332:       display: flex;
+1333:       justify-content: space-between;
+1334:       align-items: center;
+1335:       font-size: 12px;
+1336:       margin-bottom: 5px;
+1337:     }
+1338: 
+1339:     .gps-row:last-child {
+1340:       margin-bottom: 0;
+1341:     }
+1342: 
+1343:     .gps-key {
+1344:       color: var(--text-secondary);
+1345:       font-weight: 500;
+1346:     }
+1347: 
+1348:     .gps-val {
+1349:       font-weight: 700;
+1350:       font-family: 'JetBrains Mono', monospace;
+1351:       font-size: 11px;
+1352:     }
+1353: 
+1354:     .gps-ok {
+1355:       background: #F0FDF4;
+1356:       color: #16A34A;
+1357:       font-size: 11px;
+1358:       font-weight: 600;
+1359:       padding: 2px 8px;
+1360:       border-radius: 20px;
+1361:       border: 1px solid #BBF7D0;
+1362:     }
+1363: 
+1364:     .gps-near {
+1365:       background: #FFFBEB;
+1366:       color: #D97706;
+1367:       font-size: 11px;
+1368:       font-weight: 600;
+1369:       padding: 2px 8px;
+1370:       border-radius: 20px;
+1371:       border: 1px solid #FDE68A;
+1372:     }
+1373: 
+1374:     .gps-fail {
+1375:       background: #FEF2F2;
+1376:       color: #DC2626;
+1377:       font-size: 11px;
+1378:       font-weight: 600;
+1379:       padding: 2px 8px;
+1380:       border-radius: 20px;
+1381:       border: 1px solid #FECACA;
+1382:     }
+1383: 
+1384:     /* ── BADGE ── */
+1385:     .badge {
+1386:       display: inline-flex;
+1387:       align-items: center;
+1388:       gap: 5px;
+1389:       padding: 3px 10px;
+1390:       border-radius: 20px;
+1391:       font-size: 11px;
+1392:       font-weight: 600;
+1393:     }
+1394: 
+1395:     .badge::before {
+1396:       content: '';
+1397:       width: 6px;
+1398:       height: 6px;
+1399:       border-radius: 50%;
+1400:       flex-shrink: 0;
+1401:     }
+1402: 
+1403:     .badge-hot {
+1404:       background: #FEF2F2;
+1405:       color: #DC2626;
+1406:     }
+1407: 
+1408:     .badge-hot::before {
+1409:       background: #DC2626;
+1410:     }
+1411: 
+1412:     .badge-warm {
+1413:       background: #FFFBEB;
+1414:       color: #D97706;
+1415:     }
+1416: 
+1417:     .badge-warm::before {
+1418:       background: #D97706;
+1419:     }
+1420: 
+1421:     .badge-cold {
+1422:       background: #EFF6FF;
+1423:       color: #2563EB;
+1424:     }
+1425: 
+1426:     .badge-cold::before {
+1427:       background: #2563EB;
+1428:     }
+1429: 
+1430:     .pri-high {
+1431:       background: #FEF2F2;
+1432:       color: #DC2626;
+1433:       font-size: 10px;
+1434:       font-weight: 700;
+1435:       padding: 2px 8px;
+1436:       border-radius: 20px;
+1437:     }
+1438: 
+1439:     .pri-med {
+1440:       background: #FFFBEB;
+1441:       color: #D97706;
+1442:       font-size: 10px;
+1443:       font-weight: 700;
+1444:       padding: 2px 8px;
+1445:       border-radius: 20px;
+1446:     }
+1447: 
+1448:     .pri-low {
+1449:       background: #F0FDF4;
+1450:       color: #16A34A;
+1451:       font-size: 10px;
+1452:       font-weight: 700;
+1453:       padding: 2px 8px;
+1454:       border-radius: 20px;
+1455:     }
+1456: 
+1457:     /* ── TOAST ── */
+1458:     .toast-container {
+1459:       position: fixed;
+1460:       top: 80px;
+1461:       right: 24px;
+1462:       z-index: 999;
+1463:       display: flex;
+1464:       flex-direction: column;
+1465:       gap: 10px;
+1466:     }
+1467: 
+1468:     .toast {
+1469:       background: #fff;
+1470:       border-radius: 12px;
+1471:       border: 1px solid var(--border);
+1472:       padding: 14px 18px;
+1473:       display: flex;
+1474:       align-items: flex-start;
+1475:       gap: 12px;
+1476:       box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+1477:       min-width: 300px;
+1478:       max-width: 380px;
+1479:       animation: slideIn .3s cubic-bezier(.4, 0, .2, 1);
+1480:     }
+1481: 
+1482:     @keyframes slideIn {
+1483:       from {
+1484:         transform: translateX(100%);
+1485:         opacity: 0
+1486:       }
+1487: 
+1488:       to {
+1489:         transform: translateX(0);
+1490:         opacity: 1
+1491:       }
+1492:     }
+1493: 
+1494:     .toast-icon {
+1495:       font-size: 18px;
+1496:       flex-shrink: 0;
+1497:       margin-top: 1px;
+1498:     }
+1499: 
+1500:     .toast-title {
+1501:       font-size: 13px;
+1502:       font-weight: 700;
+1503:       color: var(--text-primary);
+1504:     }
+1505: 
+1506:     .toast-msg {
+1507:       font-size: 12px;
+1508:       color: var(--text-secondary);
+1509:       margin-top: 2px;
+1510:     }
+1511: 
+1512:     .toast-close {
+1513:       margin-left: auto;
+1514:       cursor: pointer;
+1515:       color: var(--text-muted);
+1516:       font-size: 16px;
+1517:       line-height: 1;
+1518:       flex-shrink: 0;
+1519:     }
+1520: 
+1521:     /* ── MINI STATS ── */
+1522:     .stats-row {
+1523:       display: grid;
+1524:       grid-template-columns: repeat(4, 1fr);
+1525:       gap: 16px;
+1526:       margin-bottom: 22px;
+1527:     }
+1528: 
+1529:     .stat-card {
+1530:       background: var(--card);
+1531:       border-radius: 14px;
+1532:       border: 1px solid var(--border);
+1533:       padding: 18px 20px;
+1534:       box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+1535:       transition: all .2s;
+1536:     }
+1537: 
+1538:     .stat-card:hover {
+1539:       transform: translateY(-1px);
+1540:       box-shadow: 0 4px 16px rgba(0, 0, 0, .07);
+1541:     }
+1542: 
+1543:     .stat-num {
+1544:       font-size: 26px;
+1545:       font-weight: 800;
+1546:       letter-spacing: -1px;
+1547:       color: var(--text-primary);
+1548:       line-height: 1;
+1549:     }
+1550: 
+1551:     .stat-lbl {
+1552:       font-size: 12px;
+1553:       font-weight: 500;
+1554:       color: var(--text-secondary);
+1555:       margin-top: 5px;
+1556:     }
+1557: 
+1558:     .stat-change {
+1559:       font-size: 11px;
+1560:       font-weight: 600;
+1561:       margin-top: 7px;
+1562:       display: inline-block;
+1563:       padding: 2px 8px;
+1564:       border-radius: 20px;
+1565:     }
+1566: 
+1567:     .chg-up {
+1568:       background: #F0FDF4;
+1569:       color: #0E9F6E;
+1570:     }
+1571: 
+1572:     .chg-down {
+1573:       background: #FEF2F2;
+1574:       color: #F05252;
+1575:     }
+1576: 
+1577:     .fade-up {
+1578:       opacity: 0;
+1579:       transform: translateY(16px);
+1580:       animation: fadeUp .4s ease forwards;
+1581:     }
+1582: 
+1583:     @keyframes fadeUp {
+1584:       to {
+1585:         opacity: 1;
+1586:         transform: translateY(0)
+1587:       }
+1588:     }
+1589: 
+1590:     .d1 {
+1591:       animation-delay: .05s
+1592:     }
+1593: 
+1594:     .d2 {
+1595:       animation-delay: .1s
+1596:     }
+1597: 
+1598:     .d3 {
+1599:       animation-delay: .15s
+1600:     }
+1601: 
+1602:     ::-webkit-scrollbar {
+1603:       width: 5px;
+1604:       height: 5px
+1605:     }
+1606: 
+1607:     ::-webkit-scrollbar-track {
+1608:       background: transparent
+1609:     }
+1610: 
+1611:     ::-webkit-scrollbar-thumb {
+1612:       background: #CBD5E1;
+1613:       border-radius: 10px
+1614:     }
+1615:   </style>
+1616: </head>
+1617: 
+1618: <body>
+1619: 
+1620:   <!-- ══════════ SIDEBAR ══════════ -->
+1621:   <nav class="sidebar" id="sidebar">
+1622:     <div class="sidebar-logo">
+1623:       <div class="logo-icon">N</div>
+1624:       <div>
+1625:         <div class="logo-text">NexaCRM</div>
+1626:         <div class="logo-sub">Edisi Sales</div>
+1627:       </div>
+1628:     </div>
+1629:     <div class="sidebar-nav">
+1630:       <div class="sidebar-section-label">Menu Utama</div>
+1631:       <a href="index.html" class="nav-item">
+1632:         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1633:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1634:             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+1635:         </svg>
+1636:         <span class="nav-label">Beranda</span>
+1637:       </a>
+1638:       <a href="prospect.html" class="nav-item">
+1639:         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1640:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1641:             d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+1642:         </svg>
+1643:         <span class="nav-label">Prospek Saya</span>
+1644:         <span class="nav-badge">24</span>
+1645:       </a>
+1646:       <a href="activities.html" class="nav-item active">
+1647:         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1648:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1649:             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+1650:         </svg>
+1651:         <span class="nav-label">Aktivitas</span>
+1652:       </a>
+1653:       <a href="products.html" class="nav-item">
+1654:         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1655:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1656:             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+1657:         </svg>
+1658:         <span class="nav-label">Produk</span>
+1659:       </a>
+1660:       <div class="sidebar-section-label" style="margin-top:8px">Lainnya</div>
+1661:       <a href="help.html" class="nav-item">
+1662:         <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1663:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1664:             d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+1665:         </svg>
+1666:         <span class="nav-label">Bantuan</span>
+1667:       </a>
+1668:     </div>
+1669:     <div class="sidebar-footer">
+1670:       <div class="user-card">
+1671:         <div class="user-avatar">RD</div>
+1672:         <div class="user-info">
+1673:           <div class="user-name">Rizky Dwi</div>
+1674:           <div class="user-role">Sales · Surabaya</div>
+1675:         </div>
+1676:       </div>
+1677:     </div>
+1678:   </nav>
+1679: 
+1680:   <!-- ══════════ TOPBAR ══════════ -->
+1681:   <header class="topbar" id="topbar">
+1682:     <button class="toggle-btn" onclick="toggleSidebar()">
+1683:       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+1684:         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+1685:       </svg>
+1686:     </button>
+1687:     <div class="breadcrumb">
+1688:       <span>Beranda</span>
+1689:       <span style="color:var(--text-muted);font-size:12px">›</span>
+1690:       <span class="current">Aktivitas</span>
+1691:     </div>
+1692:     <div class="search-bar">
+1693:       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+1694:         <circle cx="11" cy="11" r="8" stroke-width="2" />
+1695:         <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+1696:       </svg>
+1697:       <input type="text" placeholder="Cari aktivitas, prospek…" />
+1698:     </div>
+1699:     <div class="topbar-actions">
+1700:       <button class="icon-btn" onclick="showToast('info','Notifikasi','3 notifikasi belum dibaca')">
+1701:         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+1702:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1703:             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+1704:         </svg>
+1705:         <div class="notif-dot"></div>
+1706:       </button>
+1707:       <div class="topbar-user">
+1708:         <div class="topbar-avatar">RD</div>
+1709:         <div>
+1710:           <div class="topbar-uname">Rizky Dwi</div>
+1711:           <div class="topbar-urole">Sales Rep</div>
+1712:         </div>
+1713:         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px">
+1714:           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+1715:         </svg>
+1716:       </div>
+1717:     </div>
+1718:   </header>
+1719: 
+1720:   <!-- ══════════ MAIN ══════════ -->
+1721:   <main class="main" id="main">
+1722:     <div class="content">
+1723: 
+1724:       <!-- Page Header -->
+1725:       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px" class="fade-up">
+1726:         <div>
+1727:           <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Aktivitas</h1>
+1728:           <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">Jadwal, tindak lanjut, dan rencana
+1729:             kegiatan Anda</p>
+1730:         </div>
+1731:         <div style="display:flex;gap:10px">
+1732:           <button class="btn btn-outline" onclick="openTodoModal()">
+1733:             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1734:               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1735:                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+1736:             </svg>
+1737:             Tambah Tugas
+1738:           </button>
+1739:           <button class="btn btn-primary" onclick="openActivityModal()">
+1740:             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1741:               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+1742:             </svg>
+1743:             Catat Aktivitas
+1744:           </button>
+1745:         </div>
+1746:       </div>
+1747: 
+1748:       <!-- Mini Stats -->
+1749:       <div class="stats-row fade-up d1">
+1750:         <div class="stat-card">
+1751:           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+1752:             <div
+1753:               style="width:36px;height:36px;border-radius:10px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;color:var(--primary)">
+1754:               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1755:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1756:                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+1757:               </svg>
+1758:             </div>
+1759:             <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Total Aktivitas</div>
+1760:           </div>
+1761:           <div class="stat-num">38</div>
+1762:           <div class="stat-lbl">Bulan April 2026</div>
+1763:           <span class="stat-change chg-up">↑ 6 vs bulan lalu</span>
+1764:         </div>
+1765:         <div class="stat-card">
+1766:           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+1767:             <div
+1768:               style="width:36px;height:36px;border-radius:10px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;color:#0E9F6E">
+1769:               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1770:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1771:                   d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+1772:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1773:                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+1774:               </svg>
+1775:             </div>
+1776:             <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Kunjungan</div>
+1777:           </div>
+1778:           <div class="stat-num">11</div>
+1779:           <div class="stat-lbl">Terverifikasi GPS: 8</div>
+1780:           <span class="stat-change chg-up">↑ 3 vs bulan lalu</span>
+1781:         </div>
+1782:         <div class="stat-card">
+1783:           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+1784:             <div
+1785:               style="width:36px;height:36px;border-radius:10px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;color:#F05252">
+1786:               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1787:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1788:                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+1789:               </svg>
+1790:             </div>
+1791:             <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Tugas Terlambat</div>
+1792:           </div>
+1793:           <div class="stat-num" style="color:#DC2626">3</div>
+1794:           <div class="stat-lbl">Perlu ditindaklanjuti</div>
+1795:           <span class="stat-change chg-down">⚠ supervisor notified</span>
+1796:         </div>
+1797:         <div class="stat-card">
+1798:           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+1799:             <div
+1800:               style="width:36px;height:36px;border-radius:10px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;color:#E3A008">
+1801:               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1802:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1803:                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+1804:               </svg>
+1805:             </div>
+1806:             <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Agenda Hari Ini</div>
+1807:           </div>
+1808:           <div class="stat-num" style="color:#D97706">4</div>
+1809:           <div class="stat-lbl">Terjadwal hari ini</div>
+1810:           <span class="stat-change chg-up">2 selesai · 2 sisa</span>
+1811:         </div>
+1812:       </div>
+1813: 
+1814:       <!-- Calendar Controls -->
+1815:       <div class="cal-wrap fade-up d2">
+1816:         <div class="cal-header">
+1817:           <div class="cal-nav">
+1818:             <button class="cal-nav-btn" onclick="prevPeriod()">‹</button>
+1819:             <button class="cal-today-btn" onclick="goToday()">Hari Ini</button>
+1820:             <button class="cal-nav-btn" onclick="nextPeriod()">›</button>
+1821:           </div>
+1822:           <div class="cal-title" id="calTitle">April 2026</div>
+1823:           <div style="display:flex;align-items:center;gap:12px">
+1824:             <!-- Legend -->
+1825:             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+1826:               <div class="legend-item">
+1827:                 <div class="legend-dot" style="background:#0E9F6E"></div>Kunjungan
+1828:               </div>
+1829:               <div class="legend-item">
+1830:                 <div class="legend-dot" style="background:#3B5BDB"></div>Telepon
+1831:               </div>
+1832:               <div class="legend-item">
+1833:                 <div class="legend-dot" style="background:#7C3AED"></div>Pertemuan
+1834:               </div>
+1835:               <div class="legend-item">
+1836:                 <div class="legend-dot" style="background:#F05252"></div>To-Do
+1837:               </div>
+1838:               <div class="legend-item">
+1839:                 <div class="legend-dot" style="background:#D97706"></div>Agenda
+1840:               </div>
+1841:             </div>
+1842:             <!-- Filter toggle -->
+1843:             <div
+1844:               style="display:flex;gap:4px;background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:3px">
+1845:               <button id="fl-act" class="btn-ghost"
+1846:                 style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"
+1847:                 onclick="toggleLayer('act',this)">Aktivitas</button>
+1848:               <button id="fl-todo" class="btn-ghost"
+1849:                 style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"
+1850:                 onclick="toggleLayer('todo',this)">To-Do</button>
+1851:               <button id="fl-agenda" class="btn-ghost"
+1852:                 style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"
+1853:                 onclick="toggleLayer('agenda',this)">Agenda</button>
+1854:             </div>
+1855:             <!-- View toggle -->
+1856:             <div class="view-toggle">
+1857:               <button class="vt-btn active" id="vt-month" onclick="setView('month')">Bulan</button>
+1858:               <button class="vt-btn" id="vt-week" onclick="setView('week')">Minggu</button>
+1859:               <button class="vt-btn" id="vt-list" onclick="setView('list')">Daftar</button>
+1860:             </div>
+1861:           </div>
+1862:         </div>
+1863: 
+1864:         <!-- MONTH VIEW -->
+1865:         <div id="monthView">
+1866:           <div class="cal-grid-head">
+1867:             <div class="cal-day-name">Min</div>
+1868:             <div class="cal-day-name">Sen</div>
+1869:             <div class="cal-day-name">Sel</div>
+1870:             <div class="cal-day-name">Rab</div>
+1871:             <div class="cal-day-name">Kam</div>
+1872:             <div class="cal-day-name">Jum</div>
+1873:             <div class="cal-day-name weekend">Sab</div>
+1874:           </div>
+1875:           <div class="cal-grid" id="monthGrid"></div>
+1876:         </div>
+1877: 
+1878:         <!-- WEEK VIEW -->
+1879:         <div id="weekView" style="display:none">
+1880:           <div class="week-grid" id="weekGrid">
+1881:             <div class="week-time-col" id="weekTimeCols"></div>
+1882:             <!-- day columns injected by JS -->
+1883:           </div>
+1884:         </div>
+1885: 
+1886:         <!-- LIST VIEW -->
+1887:         <div id="listView" style="display:none;padding:20px 24px" id="listViewContent">
+1888:         </div>
+1889: 
+1890:       </div><!-- /cal-wrap -->
+1891:     </div>
+1892:   </main>
+1893: 
+1894:   <!-- DAY PANEL -->
+1895:   <div class="day-panel-overlay" id="panelOverlay" onclick="closeDayPanel()"></div>
+1896:   <div class="day-panel" id="dayPanel">
+1897:     <div class="day-panel-header">
+1898:       <div>
+1899:         <div class="day-panel-title" id="panelDate">Rabu, 8 April 2026</div>
+1900:         <div style="font-size:12px;color:var(--text-secondary);margin-top:2px" id="panelCount">4 item</div>
+1901:       </div>
+1902:       <div style="display:flex;gap:8px;align-items:center">
+1903:         <button class="btn btn-primary btn-sm" onclick="openActivityModal()">+ Aktivitas</button>
+1904:         <button class="dp-close" onclick="closeDayPanel()">×</button>
+1905:       </div>
+1906:     </div>
+1907:     <div class="day-panel-body" id="dayPanelBody"></div>
+1908:   </div>
+1909: 
+1910:   <!-- ══════════ MODAL: CATAT AKTIVITAS ══════════ -->
+1911:   <div class="modal-overlay" id="actModal" onclick="if(event.target===this)closeModal('actModal')">
+1912:     <div class="modal">
+1913:       <div class="modal-header">
+1914:         <div class="modal-title">Catat Aktivitas</div>
+1915:         <button class="modal-close-btn" onclick="closeModal('actModal')">×</button>
+1916:       </div>
+1917:       <div class="modal-body">
+1918:         <div class="form-group">
+1919:           <label class="form-label">Prospek <span>*</span></label>
+1920:           <select class="form-input form-select">
+1921:             <option>-- Pilih Prospek --</option>
+1922:             <option>PT Maju Abadi — Budi Santoso</option>
+1923:             <option>Sari Dewi</option>
+1924:             <option>CV Karya Mandiri — Andi Wijaya</option>
+1925:             <option>PT Harapan Jaya — Surya Pratama</option>
+1926:             <option>UD Mitra Usaha — Pak Heru</option>
+1927:           </select>
+1928:         </div>
+1929:         <div class="form-row">
+1930:           <div class="form-group">
+1931:             <label class="form-label">Tanggal & Waktu <span>*</span></label>
+1932:             <input class="form-input" type="datetime-local" id="actDateTime" value="2026-04-08T09:00" />
+1933:           </div>
+1934:           <div class="form-group">
+1935:             <label class="form-label">Jenis Aktivitas <span>*</span></label>
+1936:             <select class="form-input form-select" id="actTypeSelect" onchange="handleActType(this)">
+1937:               <option value="">-- Pilih Jenis --</option>
+1938:               <option value="visit">Kunjungan (Wajib GPS)</option>
+1939:               <option value="call">Telepon</option>
+1940:               <option value="wa">WhatsApp</option>
+1941:               <option value="email">Email</option>
+1942:               <option value="meeting">Pertemuan</option>
+1943:               <option value="demo">Demo Produk (Wajib GPS)</option>
+1944:             </select>
+1945:           </div>
+1946:         </div>
+1947:         <div class="form-row">
+1948:           <div class="form-group">
+1949:             <label class="form-label">Platform</label>
+1950:             <select class="form-input form-select">
+1951:               <option>-- Tidak Ada --</option>
+1952:               <option>Tatap Muka</option>
+1953:               <option>WhatsApp</option>
+1954:               <option>Telepon</option>
+1955:               <option>Zoom</option>
+1956:               <option>Google Meet</option>
+1957:               <option>Email</option>
+1958:             </select>
+1959:           </div>
+1960:         </div>
+1961:         <div class="form-group">
+1962:           <label class="form-label">Hasil / Catatan <span>*</span></label>
+1963:           <textarea class="form-input" rows="3"
+1964:             placeholder="Apa yang dibahas? Bagaimana respons klien? Apa hasilnya?"></textarea>
+1965:         </div>
+1966:         <div class="form-row">
+1967:           <div class="form-group">
+1968:             <label class="form-label">Agenda Selanjutnya</label>
+1969:             <input class="form-input" type="text" placeholder="cth. Kirim proposal resmi" />
+1970:           </div>
+1971:           <div class="form-group">
+1972:             <label class="form-label">Tanggal Agenda</label>
+1973:             <input class="form-input" type="date" />
+1974:           </div>
+1975:         </div>
+1976:         <!-- GPS Section -->
+1977:         <div id="gpsSection" style="display:none">
+1978:           <div style="height:1px;background:var(--border);margin:2px 0 14px"></div>
+1979:           <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+1980:             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1981:               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1982:                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+1983:             </svg>
+1984:             Verifikasi Lokasi GPS <span style="font-size:11px;font-weight:500;color:#DC2626">(Wajib)</span>
+1985:           </div>
+1986:           <div id="gpsIdle"
+1987:             style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px">
+1988:             <div style="font-size:12px;color:var(--text-secondary)">Verifikasi bahwa Anda berada di lokasi prospek</div>
+1989:             <button class="btn btn-primary btn-sm" onclick="doGPS()" style="display:flex;align-items:center;gap:4px;">
+1990:               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+1991:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1992:                   d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+1993:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+1994:                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+1995:               </svg>
+1996:               Verifikasi Lokasi
+1997:             </button>
+1998:           </div>
+1999:           <div id="gpsLoading"
+2000:             style="display:none;padding:14px 16px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-secondary)">
+2001:             <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+2002:               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+2003:                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+2004:                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+2005:               </svg>
+2006:               Mengambil koordinat GPS Anda…
+2007:             </div>
+2008:           </div>
+2009:           <div id="gpsResult" style="display:none">
+2010:             <div class="gps-box ok" id="gpsBox">
+2011:               <div class="gps-row"><span class="gps-key">Koordinat Saya</span><span class="gps-val">-7.2931,
+2012:                   112.7349</span></div>
+2013:               <div class="gps-row"><span class="gps-key">Koordinat Prospek</span><span class="gps-val">-7.2934,
+2014:                   112.7346</span></div>
+2015:               <div class="gps-row"><span class="gps-key">Jarak</span><span class="gps-val" id="gpsDist">42 meter</span>
+2016:               </div>
+2017:               <div class="gps-row"><span class="gps-key">Status</span><span id="gpsStatus"
+2018:                   class="gps-ok">Terverifikasi</span></div>
+2019:             </div>
+2020:           </div>
+2021:         </div>
+2022:       </div>
+2023:       <div class="modal-footer">
+2024:         <button class="btn btn-outline" onclick="closeModal('actModal')">Batal</button>
+2025:         <button class="btn btn-primary" onclick="saveActivity()">
+2026:           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+2027:             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+2028:           </svg>
+2029:           Simpan Aktivitas
+2030:         </button>
+2031:       </div>
+2032:     </div>
+2033:   </div>
+2034: 
+2035:   <!-- ══════════ MODAL: TAMBAH TUGAS ══════════ -->
+2036:   <div class="modal-overlay" id="todoModal" onclick="if(event.target===this)closeModal('todoModal')">
+2037:     <div class="modal" style="width:460px">
+2038:       <div class="modal-header">
+2039:         <div class="modal-title">Tambah Tugas</div>
+2040:         <button class="modal-close-btn" onclick="closeModal('todoModal')">×</button>
+2041:       </div>
+2042:       <div class="modal-body">
+2043:         <div class="form-group">
+2044:           <label class="form-label">Judul Tugas <span>*</span></label>
+2045:           <input class="form-input" type="text" placeholder="cth. Kirim proposal ke PT Maju Abadi" />
+2046:         </div>
+2047:         <div class="form-group">
+2048:           <label class="form-label">Prospek Terkait</label>
+2049:           <select class="form-input form-select">
+2050:             <option>-- Pilih Prospek (Opsional) --</option>
+2051:             <option>PT Maju Abadi</option>
+2052:             <option>CV Karya Mandiri</option>
+2053:             <option>Sari Dewi</option>
+2054:             <option>PT Harapan Jaya</option>
+2055:           </select>
+2056:         </div>
+2057:         <div class="form-row">
+2058:           <div class="form-group">
+2059:             <label class="form-label">Batas Waktu <span>*</span></label>
+2060:             <input class="form-input" type="date" />
+2061:           </div>
+2062:           <div class="form-group">
+2063:             <label class="form-label">Prioritas <span>*</span></label>
+2064:             <select class="form-input form-select">
+2065:               <option>Tinggi</option>
+2066:               <option>Sedang</option>
+2067:               <option>Rendah</option>
+2068:             </select>
+2069:           </div>
+2070:         </div>
+2071:         <div class="form-group" style="margin-bottom:0">
+2072:           <label class="form-label">Catatan</label>
+2073:           <textarea class="form-input" rows="3" placeholder="Detail tugas yang perlu dilakukan…"></textarea>
+2074:         </div>
+2075:       </div>
+2076:       <div class="modal-footer">
+2077:         <button class="btn btn-outline" onclick="closeModal('todoModal')">Batal</button>
+2078:         <button class="btn btn-primary" onclick="saveTodo()">Simpan Tugas</button>
+2079:       </div>
+2080:     </div>
+2081:   </div>
+2082: 
+2083:   <!-- Toast -->
+2084:   <div class="toast-container" id="toastContainer"></div>
+2085: 
+2086:   <script>
+2087:     // ══════════════════════════════════════════════
+2088:     // DATA
+2089:     // ══════════════════════════════════════════════
+2090:     const YEAR = 2026, MONTH = 3; // April = index 3
+2091:     const today = { y: 2026, m: 3, d: 8 };
+2092: 
+2093:     // Events: type = visit|call|wa|email|meeting|demo|todo|agenda
+2094:     const events = [
+2095:       // April activities
+2096:       { d: 1, type: 'visit', label: 'Kunjungan — PT Maju Abadi', time: '09:00', lead: 'PT Maju Abadi', gps: 'ok' },
+2097:       { d: 1, type: 'todo', label: 'Demo presentasi produk', time: '17:00', lead: 'PT Maju Abadi', overdue: true },
+2098:       { d: 2, type: 'call', label: 'Telepon — Sari Dewi', time: '10:30', lead: 'Sari Dewi' },
+2099:       { d: 3, type: 'meeting', label: 'Pertemuan — CV Karya Mandiri', time: '14:00', lead: 'CV Karya Mandiri' },
+2100:       { d: 4, type: 'todo', label: 'Kirim proposal CV Karya Mandiri', time: '', lead: 'CV Karya Mandiri', overdue: true },
+2101:       { d: 5, type: 'wa', label: 'WhatsApp — PT Harapan Jaya', time: '11:00', lead: 'PT Harapan Jaya' },
+2102:       { d: 6, type: 'wa', label: 'WhatsApp — Sari Dewi', time: '14:20', lead: 'Sari Dewi' },
+2103:       { d: 7, type: 'call', label: 'Telepon — CV Karya Mandiri', time: '10:00', lead: 'CV Karya Mandiri' },
+2104:       { d: 7, type: 'todo', label: 'Update status Hendra Gunawan', time: '', lead: 'Hendra Gunawan', overdue: true },
+2105:       // today April 8
+2106:       { d: 8, type: 'visit', label: 'Kunjungan — PT Maju Abadi', time: '09:15', lead: 'PT Maju Abadi', gps: 'ok' },
+2107:       { d: 8, type: 'meeting', label: 'Pertemuan — UD Mitra Usaha', time: '13:00', lead: 'UD Mitra Usaha' },
+2108:       { d: 8, type: 'todo', label: 'Kirim proposal PT Maju Abadi', time: '', lead: 'PT Maju Abadi' },
+2109:       { d: 8, type: 'agenda', label: 'Tindak lanjut Sari Dewi — harga', time: '15:00', lead: 'Sari Dewi' },
+2110:       // future
+2111:       { d: 9, type: 'agenda', label: 'Follow-up Sari Dewi', time: '10:00', lead: 'Sari Dewi' },
+2112:       { d: 9, type: 'call', label: 'Telepon — PT Harapan Jaya', time: '11:30', lead: 'PT Harapan Jaya' },
+2113:       { d: 10, type: 'todo', label: 'Kirim jadwal demo — PT Maju Abadi', time: '', lead: 'PT Maju Abadi' },
+2114:       { d: 11, type: 'visit', label: 'Kunjungan — CV Karya Mandiri', time: '10:00', lead: 'CV Karya Mandiri' },
+2115:       { d: 12, type: 'demo', label: 'Demo Produk — UD Mitra Usaha', time: '14:00', lead: 'UD Mitra Usaha' },
+2116:       { d: 14, type: 'meeting', label: 'Pertemuan — PT Harapan Jaya', time: '09:00', lead: 'PT Harapan Jaya' },
+2117:       { d: 15, type: 'visit', label: 'Kunjungan pabrik bersama klien', time: '08:00', lead: 'PT Maju Abadi' },
+2118:       { d: 15, type: 'agenda', label: 'Koordinasi kunjungan pabrik', time: '13:00', lead: 'PT Maju Abadi' },
+2119:       { d: 17, type: 'call', label: 'Telepon — Dewi Kusuma', time: '10:00', lead: 'Dewi Kusuma' },
+2120:       { d: 18, type: 'email', label: 'Email penawaran — Budi Setiawan', time: '09:00', lead: 'Budi Setiawan' },
+2121:       { d: 20, type: 'visit', label: 'Kunjungan — PT Sejahtera', time: '10:00', lead: 'PT Sejahtera Bersama' },
+2122:       { d: 22, type: 'meeting', label: 'Presentasi — PT Maju Abadi', time: '14:00', lead: 'PT Maju Abadi' },
+2123:       { d: 24, type: 'todo', label: 'Rekap laporan bulanan', time: '', lead: null },
+2124:       { d: 25, type: 'call', label: 'Telepon — Lina Marlina', time: '11:00', lead: 'Lina Marlina' },
+2125:       { d: 28, type: 'visit', label: 'Kunjungan — CV Karya Mandiri', time: '09:00', lead: 'CV Karya Mandiri', gps: 'near' },
+2126:       { d: 30, type: 'demo', label: 'Demo Final — PT Maju Abadi', time: '10:00', lead: 'PT Maju Abadi' },
+2127:     ];
+2128: 
+2129:     // type → display config
+2130:     const typeConf = {
+2131:       visit: { label: 'Kunjungan', evCls: 'ev-visit', lbgCls: 'lbg-visit', iconColor: '#0E9F6E', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`, iconBg: '#F0FDF4' },
+2132:       call: { label: 'Telepon', evCls: 'ev-call', lbgCls: 'lbg-call', iconColor: '#3B5BDB', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>`, iconBg: '#EFF6FF' },
+2133:       wa: { label: 'WhatsApp', evCls: 'ev-wa', lbgCls: 'lbg-wa', iconColor: '#16A34A', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>`, iconBg: '#F0FDF4' },
+2134:       email: { label: 'Email', evCls: 'ev-email', lbgCls: 'lbg-email', iconColor: '#D97706', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`, iconBg: '#FFFBEB' },
+2135:       meeting: { label: 'Pertemuan', evCls: 'ev-meeting', lbgCls: 'lbg-meeting', iconColor: '#7C3AED', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`, iconBg: '#F5F3FF' },
+2136:       demo: { label: 'Demo', evCls: 'ev-demo', lbgCls: 'lbg-demo', iconColor: '#0694A2', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`, iconBg: '#ECFEFF' },
+2137:       todo: { label: 'Tugas', evCls: 'ev-todo', lbgCls: 'lbg-todo', iconColor: '#F05252', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`, iconBg: '#FEF2F2' },
+2138:       agenda: { label: 'Agenda', evCls: 'ev-agenda', lbgCls: 'lbg-agenda', iconColor: '#E3A008', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`, iconBg: '#FFFBEB' },
+2139:     };
+2140: 
+2141:     // active layers
+2142:     let layers = { act: true, todo: true, agenda: true };
+2143: 
+2144:     function isVisible(ev) {
+2145:       if (ev.type === 'todo') return layers.todo;
+2146:       if (ev.type === 'agenda') return layers.agenda;
+2147:       return layers.act;
+2148:     }
+2149: 
+2150:     // ══════════════════════════════════════════════
+2151:     // CALENDAR STATE
+2152:     // ══════════════════════════════════════════════
+2153:     let curYear = YEAR, curMonth = MONTH, curView = 'month';
+2154:     let selectedDay = today.d;
+2155: 
+2156:     const DAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+2157:     const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+2158: 
+2159:     function getEventsForDay(d) {
+2160:       return events.filter(e => e.d === d && isVisible(e));
+2161:     }
+2162: 
+2163:     // ══════════════════════════════════════════════
+2164:     // MONTH VIEW
+2165:     // ══════════════════════════════════════════════
+2166:     function renderMonth() {
+2167:       document.getElementById('calTitle').textContent = MONTHS_ID[curMonth] + ' ' + curYear;
+2168:       const grid = document.getElementById('monthGrid');
+2169:       const firstDay = new Date(curYear, curMonth, 1).getDay();
+2170:       const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+2171:       const daysInPrev = new Date(curYear, curMonth, 0).getDate();
+2172: 
+2173:       let html = '';
+2174:       let day = 1;
+2175:       let nextDay = 1;
+2176:       const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+2177: 
+2178:       for (let i = 0; i < totalCells; i++) {
+2179:         let cellDay, otherMonth = false;
+2180:         if (i < firstDay) { cellDay = daysInPrev - firstDay + i + 1; otherMonth = true; }
+2181:         else if (day > daysInMonth) { cellDay = nextDay++; otherMonth = true; }
+2182:         else { cellDay = day++; }
+2183: 
+2184:         const isToday = !otherMonth && cellDay === today.d && curMonth === today.m && curYear === today.y;
+2185:         const isSelected = !otherMonth && cellDay === selectedDay && curMonth === today.m;
+2186:         const dayEvs = otherMonth ? [] : getEventsForDay(cellDay);
+2187:         const maxShow = 3;
+2188: 
+2189:         let cls = 'cal-cell';
+2190:         if (otherMonth) cls += ' other-month';
+2191:         if (isToday) cls += ' today';
+2192:         if (isSelected && !isToday) cls += ' selected';
+2193: 
+2194:         let evHtml = dayEvs.slice(0, maxShow).map(ev => {
+2195:           const c = typeConf[ev.type];
+2196:           return `<span class="cal-event ${c.evCls}" onclick="event.stopPropagation();openDayPanel(${otherMonth ? 'null' : cellDay})">${ev.time ? ev.time + ' ' : ''}${ev.label}</span>`;
+2197:         }).join('');
+2198:         if (dayEvs.length > maxShow) evHtml += `<div class="cal-more">+${dayEvs.length - maxShow} lainnya</div>`;
+2199: 
+2200:         html += `<div class="${cls}" onclick="${otherMonth ? '' : `selectDay(${cellDay})`}">
+2201:       <div class="cal-date-num">${cellDay}</div>
+2202:       ${evHtml}
+2203:     </div>`;
+2204:       }
+2205:       grid.innerHTML = html;
+2206:     }
+2207: 
+2208:     function selectDay(d) {
+2209:       selectedDay = d;
+2210:       renderMonth();
+2211:       openDayPanel(d);
+2212:     }
+2213: 
+2214:     // ══════════════════════════════════════════════
+2215:     // WEEK VIEW
+2216:     // ══════════════════════════════════════════════
+2217:     function renderWeek() {
+2218:       // Find Monday of the week containing selectedDay
+2219:       const ref = new Date(curYear, curMonth, selectedDay);
+2220:       const dow = ref.getDay(); // 0=Sun
+2221:       const mondayOffset = dow === 0 ? -6 : 1 - dow;
+2222:       const monday = new Date(ref);
+2223:       monday.setDate(ref.getDate() + mondayOffset);
+2224: 
+2225:       // Build title
+2226:       const endSun = new Date(monday);
+2227:       endSun.setDate(monday.getDate() + 6);
+2228:       document.getElementById('calTitle').textContent =
+2229:         `${monday.getDate()} – ${endSun.getDate()} ${MONTHS_ID[curMonth]} ${curYear}`;
+2230: 
+2231:       const timeGrid = document.getElementById('weekTimeCols');
+2232:       const wg = document.getElementById('weekGrid');
+2233: 
+2234:       // Clear old day columns (keep timeCol)
+2235:       wg.querySelectorAll('.week-day-col').forEach(el => el.remove());
+2236: 
+2237:       // Time slots 07:00–19:00
+2238:       const startHour = 7;
+2239:       const endHour = 19;
+2240:       const slots = endHour - startHour;
+2241: 
+2242:       // Time column
+2243:       let tHtml = '';
+2244:       for (let h = startHour; h <= endHour; h++) {
+2245:         tHtml += `<div class="week-time-slot">${h.toString().padStart(2, '0')}:00</div>`;
+2246:       }
+2247:       timeGrid.innerHTML = tHtml;
+2248: 
+2249:       // Day columns
+2250:       const colors = { visit: '#0E9F6E', call: '#3B5BDB', wa: '#16A34A', email: '#D97706', meeting: '#7C3AED', demo: '#0694A2', todo: '#F05252', agenda: '#E3A008' };
+2251:       const lightColors = { visit: 'rgba(14,159,110,.15)', call: 'rgba(59,91,219,.15)', wa: 'rgba(22,163,74,.15)', email: 'rgba(217,119,6,.15)', meeting: 'rgba(124,58,237,.15)', demo: 'rgba(6,148,162,.15)', todo: 'rgba(240,82,82,.15)', agenda: 'rgba(227,160,8,.15)' };
+2252: 
+2253:       for (let i = 0; i < 7; i++) {
+2254:         const d = new Date(monday);
+2255:         d.setDate(monday.getDate() + i);
+2256:         const dayNum = d.getDate();
+2257:         const isToday = dayNum === today.d && d.getMonth() === today.m && d.getFullYear() === today.y;
+2258: 
+2259:         const col = document.createElement('div');
+2260:         col.className = 'week-day-col';
+2261:         col.style.cssText = 'display:flex;flex-direction:column;';
+2262: 
+2263:         // Header
+2264:         const hdr = document.createElement('div');
+2265:         hdr.className = 'week-day-header';
+2266:         hdr.innerHTML = `<div class="week-day-name">${DAYS_ID[d.getDay()]}</div>
+2267:       <div class="week-day-num${isToday ? ' today' : ''}">${dayNum}</div>`;
+2268:         col.appendChild(hdr);
+2269: 
+2270:         // Slots container
+2271:         const slotWrap = document.createElement('div');
+2272:         slotWrap.style.cssText = 'position:relative;flex:1;';
+2273: 
+2274:         for (let s = 0; s <= slots; s++) {
+2275:           const slot = document.createElement('div');
+2276:           slot.className = 'week-slot-row';
+2277:           slotWrap.appendChild(slot);
+2278:         }
+2279: 
+2280:         // Current time line (only today)
+2281:         if (isToday) {
+2282:           const now = new Date();
+2283:           const pct = ((now.getHours() - startHour) * 60 + now.getMinutes()) / ((slots) * 60);
+2284:           if (pct >= 0 && pct <= 1) {
+2285:             const line = document.createElement('div');
+2286:             line.className = 'week-current-time';
+2287:             line.style.top = (pct * slots * 56) + 'px';
+2288:             slotWrap.appendChild(line);
+2289:           }
+2290:         }
+2291: 
+2292:         // Events
+2293:         const dayEvs = d.getMonth() === curMonth ? getEventsForDay(dayNum) : [];
+2294:         dayEvs.filter(e => e.time).forEach(ev => {
+2295:           const [h, m] = ev.time.split(':').map(Number);
+2296:           const topPx = ((h - startHour) * 60 + m) / 60 * 56;
+2297:           const evEl = document.createElement('div');
+2298:           evEl.className = 'week-event';
+2299:           evEl.style.cssText = `top:${topPx}px;background:${lightColors[ev.type]};color:${colors[ev.type]};border-left:3px solid ${colors[ev.type]};`;
+2300:           evEl.innerHTML = `<div style="font-size:10px;opacity:.8">${ev.time}</div><div style="line-height:1.3">${ev.label}</div>`;
+2301:           evEl.onclick = () => showToast('info', typeConf[ev.type].label, ev.label + (ev.lead ? ' — ' + ev.lead : ''));
+2302:           slotWrap.appendChild(evEl);
+2303:         });
+2304: 
+2305:         col.appendChild(slotWrap);
+2306:         wg.appendChild(col);
+2307:       }
+2308:     }
+2309: 
+2310:     // ══════════════════════════════════════════════
+2311:     // LIST VIEW
+2312:     // ══════════════════════════════════════════════
+2313:     function renderList() {
+2314:       document.getElementById('calTitle').textContent = MONTHS_ID[curMonth] + ' ' + curYear;
+2315:       const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+2316:       let html = '';
+2317: 
+2318:       for (let d = 1; d <= daysInMonth; d++) {
+2319:         const evs = getEventsForDay(d);
+2320:         if (!evs.length) continue;
+2321: 
+2322:         const isToday = d === today.d && curMonth === today.m;
+2323:         const weekday = new Date(curYear, curMonth, d);
+2324:         const wdName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][weekday.getDay()];
+2325:         const dateStr = `${wdName}, ${d} ${MONTHS_ID[curMonth]} ${curYear}`;
+2326: 
+2327:         html += `<div class="list-day-group">
+2328:       <div class="list-day-label${isToday ? ' today-label' : ''}">${isToday ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' : ''}${dateStr}${isToday ? ' — Hari Ini' : ''}</div>`;
+2329: 
+2330:         evs.forEach(ev => {
+2331:           const c = typeConf[ev.type];
+2332:           const gpsHtml = ev.gps === 'ok' ? '<span class="gps-ok">Terverifikasi</span>'
+2333:             : ev.gps === 'near' ? '<span class="gps-near">Mendekati</span>'
+2334:               : ev.gps === 'fail' ? '<span class="gps-fail">Di Luar Jangkauan</span>' : '';
+2335:           html += `<div class="list-item${ev.overdue ? ' overdue' : ''}" onclick="showToast('info','${c.label}','${ev.label}')">
+2336:         <div class="list-icon" style="background:${c.iconBg};color:${c.iconColor}">${c.icon}</div>
+2337:         <div class="list-body">
+2338:           <div class="list-title">${ev.label}</div>
+2339:           ${ev.lead ? `<div class="list-sub">Prospek: ${ev.lead}</div>` : ''}
+2340:           <div class="list-meta" style="align-items:center;">
+2341:             ${ev.time ? `<span class="list-time" style="display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${ev.time}</span>` : ''}
+2342:             <span class="list-badge ${c.lbgCls}">${c.label}</span>
+2343:             ${ev.overdue ? '<span class="list-badge" style="background:#FEF2F2;color:#DC2626">Terlambat</span>' : ''}
+2344:             ${gpsHtml}
+2345:           </div>
+2346:         </div>
+2347:       </div>`;
+2348:         });
+2349: 
+2350:         html += '</div>';
+2351:       }
+2352: 
+2353:       document.getElementById('listView').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--text-muted)">Tidak ada aktivitas bulan ini</div>';
+2354:     }
+2355: 
+2356:     // ══════════════════════════════════════════════
+2357:     // DAY PANEL
+2358:     // ══════════════════════════════════════════════
+2359:     function openDayPanel(d) {
+2360:       if (!d) return;
+2361:       selectedDay = d;
+2362:       const evs = getEventsForDay(d);
+2363:       const weekday = new Date(curYear, curMonth, d);
+2364:       const wdName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][weekday.getDay()];
+2365:       document.getElementById('panelDate').textContent = `${wdName}, ${d} ${MONTHS_ID[curMonth]} ${curYear}`;
+2366: 
+2367:       const acts = evs.filter(e => e.type !== 'todo' && e.type !== 'agenda');
+2368:       const todos = evs.filter(e => e.type === 'todo');
+2369:       const agendas = evs.filter(e => e.type === 'agenda');
+2370:       document.getElementById('panelCount').textContent = `${evs.length} item terjadwal`;
+2371: 
+2372:       let html = '';
+2373: 
+2374:       if (acts.length) {
+2375:         html += '<div class="dp-section-title">Aktivitas</div>';
+2376:         acts.forEach(ev => {
+2377:           const c = typeConf[ev.type];
+2378:           const gpsHtml = ev.gps === 'ok' ? '<span class="gps-ok" style="font-size:10px">GPS OK</span>'
+2379:             : ev.gps === 'near' ? '<span class="gps-near" style="font-size:10px">Mendekati</span>'
+2380:               : ev.gps === 'fail' ? '<span class="gps-fail" style="font-size:10px">Di Luar</span>' : '';
+2381:           html += `<div class="dp-item" onclick="showToast('info','${c.label}','${ev.label}')">
+2382:         <div class="dp-item-header">
+2383:           <span style="display:flex;align-items:center;justify-content:center;color:${c.iconColor}">${c.icon}</span>
+2384:           <div class="dp-item-title">${ev.label}</div>
+2385:           <span class="list-badge ${c.lbgCls}">${c.label}</span>
+2386:         </div>
+2387:         <div class="dp-item-sub" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+2388:           ${ev.time ? '<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> ' + ev.time : ''} 
+2389:           ${ev.lead ? '· ' + ev.lead : ''}
+2390:         </div>
+2391:         ${gpsHtml ? `<div style="margin-top:5px">${gpsHtml}</div>` : ''}
+2392:       </div>`;
+2393:         });
+2394:       }
+2395: 
+2396:       if (agendas.length) {
+2397:         html += '<div class="dp-section-title">Agenda / Tindak Lanjut</div>';
+2398:         agendas.forEach(ev => {
+2399:           html += `<div class="dp-item" onclick="showToast('info','Agenda','${ev.label}')">
+2400:         <div class="dp-item-header">
+2401:           <span style="display:flex;align-items:center;justify-content:center;color:#E3A008"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></span>
+2402:           <div class="dp-item-title">${ev.label}</div>
+2403:         </div>
+2404:         <div class="dp-item-sub">${ev.time ? '⏰ ' + ev.time : ''} ${ev.lead ? '· ' + ev.lead : ''}</div>
+2405:       </div>`;
+2406:         });
+2407:       }
+2408: 
+2409:       if (todos.length) {
+2410:         html += '<div class="dp-section-title">To-Do / Tugas</div>';
+2411:         todos.forEach(ev => {
+2412:           html += `<div class="dp-item${ev.overdue ? ' overdue' : ''}" onclick="showToast('${ev.overdue ? 'warning' : 'info'}','Tugas','${ev.label}')">
+2413:         <div class="dp-item-header">
+2414:           <span style="display:flex;align-items:center;justify-content:center;color:${ev.overdue ? '#DC2626' : '#10B981'}">
+2415:             ${ev.overdue ? '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>' : '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
+2416:           </span>
+2417:           <div class="dp-item-title" style="${ev.overdue ? 'color:#DC2626' : ''}">${ev.label}</div>
+2418:           ${ev.overdue ? '<span class="list-badge" style="background:#FEF2F2;color:#DC2626">Terlambat</span>' : ''}
+2419:         </div>
+2420:         <div class="dp-item-sub">${ev.lead ? '· ' + ev.lead : ''}</div>
+2421:       </div>`;
+2422:         });
+2423:       }
+2424: 
+2425:       if (!evs.length) {
+2426:         html = `<div style="text-align:center;padding:40px;color:var(--text-muted)">
+2427:       <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--text-muted)">
+2428:         <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+2429:       </div>
+2430:       <div style="font-size:13px;font-weight:600">Tidak ada aktivitas</div>
+2431:       <div style="font-size:12px;margin-top:4px">Klik tombol di atas untuk menambahkan</div>
+2432:     </div>`;
+2433:       }
+2434: 
+2435:       document.getElementById('dayPanelBody').innerHTML = html;
+2436:       document.getElementById('panelOverlay').classList.add('show');
+2437:       document.getElementById('dayPanel').classList.add('open');
+2438:     }
+2439:     function closeDayPanel() {
+2440:       document.getElementById('panelOverlay').classList.remove('show');
+2441:       document.getElementById('dayPanel').classList.remove('open');
+2442:     }
+2443: 
+2444:     // ══════════════════════════════════════════════
+2445:     // VIEW CONTROLS
+2446:     // ══════════════════════════════════════════════
+2447:     function setView(v) {
+2448:       curView = v;
+2449:       ['month', 'week', 'list'].forEach(x => {
+2450:         document.getElementById(x + 'View').style.display = x === v ? 'block' : 'none';
+2451:         document.getElementById('vt-' + x).classList.toggle('active', x === v);
+2452:       });
+2453:       if (v === 'month') renderMonth();
+2454:       else if (v === 'week') renderWeek();
+2455:       else renderList();
+2456:     }
+2457: 
+2458:     function prevPeriod() {
+2459:       if (curView === 'month' || curView === 'list') {
+2460:         curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; }
+2461:       } else {
+2462:         selectedDay -= 7;
+2463:         if (selectedDay < 1) { curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; } selectedDay = new Date(curYear, curMonth + 1, 0).getDate() + selectedDay; }
+2464:       }
+2465:       render();
+2466:     }
+2467:     function nextPeriod() {
+2468:       if (curView === 'month' || curView === 'list') {
+2469:         curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; }
+2470:       } else {
+2471:         const dim = new Date(curYear, curMonth + 1, 0).getDate();
+2472:         selectedDay += 7;
+2473:         if (selectedDay > dim) { selectedDay -= dim; curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; } }
+2474:       }
+2475:       render();
+2476:     }
+2477:     function goToday() {
+2478:       curYear = today.y; curMonth = today.m; selectedDay = today.d;
+2479:       render();
+2480:       if (curView !== 'list') openDayPanel(today.d);
+2481:     }
+2482:     function render() {
+2483:       if (curView === 'month') renderMonth();
+2484:       else if (curView === 'week') renderWeek();
+2485:       else renderList();
+2486:     }
+2487: 
+2488:     // ── Layer toggle
+2489:     function toggleLayer(layer, btn) {
+2490:       layers[layer] = !layers[layer];
+2491:       btn.style.background = layers[layer] ? '#fff' : 'transparent';
+2492:       btn.style.boxShadow = layers[layer] ? '0 1px 3px rgba(0,0,0,.08)' : 'none';
+2493:       btn.style.opacity = layers[layer] ? '1' : '.5';
+2494:       render();
+2495:     }
+2496: 
+2497:     // ══════════════════════════════════════════════
+2498:     // SIDEBAR / MODALS / GPS
+2499:     // ══════════════════════════════════════════════
+2500:     function toggleSidebar() {
+2501:       document.getElementById('sidebar').classList.toggle('collapsed');
+2502:       document.getElementById('topbar').classList.toggle('expanded');
+2503:       document.getElementById('main').classList.toggle('expanded');
+2504:     }
+2505: 
+2506:     function openActivityModal() { document.getElementById('actModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+2507:     function openTodoModal() { document.getElementById('todoModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+2508:     function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
+2509: 
+2510:     function handleActType(sel) {
+2511:       const needGPS = sel.value === 'visit' || sel.value === 'demo';
+2512:       document.getElementById('gpsSection').style.display = needGPS ? 'block' : 'none';
+2513:       if (needGPS) { document.getElementById('gpsIdle').style.display = 'flex'; document.getElementById('gpsLoading').style.display = 'none'; document.getElementById('gpsResult').style.display = 'none'; }
+2514:     }
+2515: 
+2516:     function doGPS() {
+2517:       document.getElementById('gpsIdle').style.display = 'none';
+2518:       document.getElementById('gpsLoading').style.display = 'block';
+2519:       setTimeout(() => {
+2520:         document.getElementById('gpsLoading').style.display = 'none';
+2521:         document.getElementById('gpsResult').style.display = 'block';
+2522:         const r = Math.random();
+2523:         const box = document.getElementById('gpsBox');
+2524:         const dist = document.getElementById('gpsDist');
+2525:         const status = document.getElementById('gpsStatus');
+2526:         if (r < 0.5) {
+2527:           box.className = 'gps-box ok'; dist.textContent = '42 meter';
+2528:           status.className = 'gps-ok'; status.textContent = 'Terverifikasi';
+2529:         } else if (r < 0.8) {
+2530:           box.className = 'gps-box near'; dist.textContent = '310 meter';
+2531:           status.className = 'gps-near'; status.textContent = 'Mendekati';
+2532:         } else {
+2533:           box.className = 'gps-box fail'; dist.textContent = '850 meter';
+2534:           status.className = 'gps-fail'; status.textContent = 'Di Luar Jangkauan';
+2535:         }
+2536:       }, 1800);
+2537:     }
+2538: 
+2539:     function saveActivity() {
+2540:       closeModal('actModal');
+2541:       showToast('success', 'Aktivitas Disimpan!', 'Aktivitas baru berhasil dicatat dan ditambahkan ke kalender.');
+2542:     }
+2543:     function saveTodo() {
+2544:       closeModal('todoModal');
+2545:       showToast('success', 'Tugas Ditambahkan!', 'Tugas baru berhasil disimpan.');
+2546:     }
+2547: 
+2548:     // ── Toast
+2549:     let toastCount = 0;
+2550:     function showToast(type, title, msg) {
+2551:       if (toastCount >= 3) { const f = document.getElementById('toastContainer').firstChild; if (f) f.remove(); }
+2552:       const icons = {
+2553:         success: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10B981"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+2554:         error: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#EF4444"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+2555:         warning: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#F59E0B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+2556:         info: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#3B82F6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+2557:       };
+2558:       const id = 'toast-' + Date.now();
+2559:       const el = document.createElement('div');
+2560:       el.className = 'toast'; el.id = id;
+2561:       el.innerHTML = `<span class="toast-icon" style="display:flex;align-items:center;">${icons[type] || icons['info']}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="document.getElementById('${id}').remove()">×</span>`;
+2562:       document.getElementById('toastContainer').appendChild(el);
+2563:       toastCount++;
+2564:       setTimeout(() => { if (document.getElementById(id)) { document.getElementById(id).remove(); toastCount = Math.max(0, toastCount - 1); } }, 4000);
+2565:     }
+2566: 
+2567:     // ══════════════════════════════════════════════
+2568:     // INIT
+2569:     // ══════════════════════════════════════════════
+2570:     renderMonth();
+2571:     // Auto-open today's panel after a brief delay
+2572:     setTimeout(() => openDayPanel(today.d), 400);
+2573:     setTimeout(() => showToast('info', 'Aktivitas Hari Ini', 'Anda memiliki 4 item terjadwal hari ini — 1 tugas terlambat.'), 700);
+2574:   </script>
+2575: </body>
+2576: 
+2577: </html>

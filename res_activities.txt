@@ -1,0 +1,155 @@
+
+        color: var(--text-secondary);
+      }
+  
+>     /* ── MODAL ── */
+>     .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, .4);
+        pointer-events: none;
+      }
+  
+>     .modal-overlay.show {
+        opacity: 1;
+        pointer-events: all;
+      }
+  
+>     .modal {
+        background: #fff;
+        border-radius: 18px;
+        width: 560px;
+        transition: all .25s cubic-bezier(.4, 0, .2, 1);
+      }
+  
+>     .modal-overlay.show .modal {
+        transform: scale(1) translateY(0);
+      }
+  
+>     .modal-header {
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        z-index: 1;
+      }
+  
+>     .modal-title {
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: -.4px;
+      }
+  
+>     .modal-close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        transition: all .2s;
+      }
+  
+>     .modal-close-btn:hover {
+        background: #FEF2F2;
+        border-color: #FECACA;
+        color: #DC2626;
+      }
+  
+>     .modal-body {
+        padding: 20px 24px;
+      }
+  
+>     .modal-footer {
+        padding: 16px 24px;
+        display: flex;
+        gap: 10px;
+              kegiatan Anda</p>
+          </div>
+          <div style="display:flex;gap:10px">
+>           <button class="btn btn-outline" onclick="openTodoModal()">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Tambah Tugas
+            </button>
+>           <button class="btn btn-primary" onclick="openActivityModal()">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px" id="panelCount">4 item</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+>         <button class="btn btn-primary btn-sm" onclick="openActivityModal()">+ Aktivitas</button>
+          <button class="dp-close" onclick="closeDayPanel()">×</button>
+        </div>
+      </div>
+      <div class="day-panel-body" id="dayPanelBody"></div>
+    </div>
+  
+>   <!-- ══════════ MODAL: CATAT AKTIVITAS ══════════ -->
+>   <div class="modal-overlay" id="actModal" onclick="if(event.target===this)closeModal('actModal')">
+>     <div class="modal">
+>       <div class="modal-header">
+>         <div class="modal-title">Catat Aktivitas</div>
+>         <button class="modal-close-btn" onclick="closeModal('actModal')">×</button>
+        </div>
+>       <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Prospek <span>*</span></label>
+            <select class="form-input form-select">
+            </div>
+          </div>
+        </div>
+>       <div class="modal-footer">
+>         <button class="btn btn-outline" onclick="closeModal('actModal')">Batal</button>
+          <button class="btn btn-primary" onclick="saveActivity()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </div>
+    </div>
+  
+>   <!-- ══════════ MODAL: TAMBAH TUGAS ══════════ -->
+>   <div class="modal-overlay" id="todoModal" onclick="if(event.target===this)closeModal('todoModal')">
+>     <div class="modal" style="width:460px">
+>       <div class="modal-header">
+>         <div class="modal-title">Tambah Tugas</div>
+>         <button class="modal-close-btn" onclick="closeModal('todoModal')">×</button>
+        </div>
+>       <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Judul Tugas <span>*</span></label>
+            <input class="form-input" type="text" placeholder="cth. Kirim proposal ke PT Maju Abadi" />
+            <textarea class="form-input" rows="3" placeholder="Detail tugas yang perlu dilakukan…"></textarea>
+          </div>
+        </div>
+>       <div class="modal-footer">
+>         <button class="btn btn-outline" onclick="closeModal('todoModal')">Batal</button>
+          <button class="btn btn-primary" onclick="saveTodo()">Simpan Tugas</button>
+        </div>
+      </div>
+      }
+  
+      // ══════════════════════════════════════════════
+>     // SIDEBAR / MODALS / GPS
+      // ══════════════════════════════════════════════
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('main').classList.toggle('expanded');
+      }
+  
+>     function openActivityModal() { document.getElementById('actModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+>     function openTodoModal() { document.getElementById('todoModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+>     function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
+  
+      function handleActType(sel) {
+        const needGPS = sel.value === 'visit' || sel.value === 'demo';
+      }
+  
+      function saveActivity() {
+>       closeModal('actModal');
+        showToast('success', 'Aktivitas Disimpan!', 'Aktivitas baru berhasil dicatat dan ditambahkan ke kalender.');
+      }
+      function saveTodo() {
+>       closeModal('todoModal');
+        showToast('success', 'Tugas Ditambahkan!', 'Tugas baru berhasil disimpan.');
+      }
+  
+
