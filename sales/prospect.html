@@ -3825,9 +3825,21 @@
             const isInd = t === 'individual';
             document.getElementById('add-individual').style.display = isInd ? 'block' : 'none';
             document.getElementById('add-corporate').style.display = isInd ? 'none' : 'block';
-            const base = 'flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .2s;';
-            document.getElementById('tab-ind').style.cssText = base + (isInd ? 'background:var(--primary);color:#fff' : 'background:transparent;color:var(--text-secondary)');
-            document.getElementById('tab-corp').style.cssText = base + (!isInd ? 'background:var(--primary);color:#fff' : 'background:transparent;color:var(--text-secondary)');
+            
+            const btnInd = document.getElementById('tab-ind');
+            const btnCorp = document.getElementById('tab-corp');
+            
+            if (isInd) {
+                btnInd.style.background = 'var(--primary)';
+                btnInd.style.color = '#fff';
+                btnCorp.style.background = 'transparent';
+                btnCorp.style.color = 'var(--text-secondary)';
+            } else {
+                btnInd.style.background = 'transparent';
+                btnInd.style.color = 'var(--text-secondary)';
+                btnCorp.style.background = 'var(--primary)';
+                btnCorp.style.color = '#fff';
+            }
         }
 
         // ── DUPLICATE CHECK
