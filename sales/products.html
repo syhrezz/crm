@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Produk</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB;
+      --primary-light: #EEF2FF;
+      --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A;
+      --sidebar-text: #94A3B8;
+      --success: #0E9F6E;
+      --warning: #E3A008;
+      --danger: #F05252;
+      --surface: #F8FAFC;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--surface);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: width .3s cubic-bezier(.4, 0, .2, 1);
+      border-right: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .sidebar.collapsed {
+      width: 68px;
+    }
+
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      min-height: 64px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .logo-text {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--sidebar-text);
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .logo-sub {
+      opacity: 0;
+      width: 0;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, .4);
+      padding: 16px 20px 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .sidebar-section-label {
+      opacity: 0;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      overflow-x: hidden;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      margin-bottom: 2px;
+      position: relative;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, .06);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(59, 91, 219, .3), rgba(124, 58, 237, .2));
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(59, 91, 219, .4);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: var(--primary);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      opacity: .8;
+    }
+
+    .nav-item.active .nav-icon {
+      opacity: 1;
+    }
+
+    .nav-label {
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-label {
+      opacity: 0;
+      width: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: #F05252;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-badge {
+      opacity: 0;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      overflow: hidden;
+    }
+
+    .user-card:hover {
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--sidebar-text);
+      white-space: nowrap;
+    }
+
+    .sidebar.collapsed .user-info {
+      opacity: 0;
+      width: 0;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      position: fixed;
+      left: 260px;
+      top: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(248, 250, 252, .92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      z-index: 90;
+      transition: left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .topbar.expanded {
+      left: 68px;
+    }
+
+    .toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .breadcrumb span {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb .current {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 38px;
+      width: 280px;
+      transition: all .2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 8px;
+      height: 8px;
+      background: #F05252;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid transparent;
+    }
+
+    .topbar-user:hover {
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .topbar-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .topbar-uname {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .topbar-urole {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 260px;
+      padding-top: 64px;
+      min-height: 100vh;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .main.expanded {
+      margin-left: 68px;
+    }
+
+    .content {
+      padding: 28px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(59, 91, 219, .3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(59, 91, 219, .35);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn-xs {
+      padding: 5px 10px;
+      font-size: 11px;
+      border-radius: 7px;
+    }
+
+    /* VIEW TOGGLE */
+    .view-toggle {
+      display: flex;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 3px;
+    }
+
+    .vt-btn {
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .2s;
+      color: var(--text-secondary);
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .vt-btn.active {
+      background: #fff;
+      color: var(--text-primary);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    }
+
+    /* CATEGORY SIDEBAR */
+    .cat-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+    }
+
+    .cat-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .cat-item:hover {
+      background: #F1F5F9;
+      color: var(--text-primary);
+    }
+
+    .cat-item.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .cat-count {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+      background: #E2E8F0;
+      color: var(--text-secondary);
+    }
+
+    .cat-item.active .cat-count {
+      background: rgba(59, 91, 219, .15);
+      color: var(--primary);
+    }
+
+    .cat-icon {
+      font-size: 16px;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* PRODUCT CARD */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .product-card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: all .25s;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, .09);
+      border-color: rgba(59, 91, 219, .2);
+    }
+
+    .product-card-img {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-card-body {
+      padding: 14px 16px;
+    }
+
+    .product-card-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .product-card-sku {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 8px;
+    }
+
+    .product-card-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid #F1F5F9;
+    }
+
+    .product-price {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .product-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .stock-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .stock-ok {
+      background: #F0FDF4;
+      color: #16A34A;
+    }
+
+    .stock-low {
+      background: #FFFBEB;
+      color: #D97706;
+    }
+
+    .stock-empty {
+      background: #FEF2F2;
+      color: #DC2626;
+    }
+
+    .rx-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(220, 38, 38, .9);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    .new-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(59, 91, 219, .9);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    .promo-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(14, 159, 110, .9);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    /* buyer count badge on card */
+    .buyer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 11px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+      background: #F8FAFC;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    thead th:hover {
+      color: var(--text-primary);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #F1F5F9;
+      transition: background .15s;
+      cursor: pointer;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #FAFBFF;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    /* DRAWER */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .35);
+      z-index: 150;
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+    }
+
+    .drawer-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      height: 100vh;
+      width: 600px;
+      max-width: 96vw;
+      background: #fff;
+      z-index: 160;
+      box-shadow: -8px 0 40px rgba(0, 0, 0, .12);
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .drawer-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-secondary);
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .drawer-close:hover {
+      background: #FEF2F2;
+      border-color: #FECACA;
+      color: #DC2626;
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    /* TABS */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-pane {
+      display: none;
+      padding: 22px 24px;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* DETAIL INFO */
+    .detail-img {
+      width: 100%;
+      height: 160px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .detail-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .detail-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+
+    .detail-key {
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 140px;
+      flex-shrink: 0;
+      font-weight: 500;
+      padding-top: 1px;
+    }
+
+    .detail-val {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .indication-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #EEF2FF;
+      color: var(--primary);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    /* PURCHASE HISTORY */
+    .history-lead-card {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: all .2s;
+    }
+
+    .history-lead-card:hover {
+      border-color: rgba(59, 91, 219, .25);
+      background: #FAFBFF;
+    }
+
+    .hlc-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+    }
+
+    .hlc-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .hlc-body {
+      flex: 1;
+    }
+
+    .hlc-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .hlc-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .hlc-right {
+      text-align: right;
+    }
+
+    .hlc-total {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hlc-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .hlc-detail {
+      border-top: 1px solid var(--border);
+      background: #fff;
+      display: none;
+    }
+
+    .hlc-detail.open {
+      display: block;
+    }
+
+    .hlc-trx-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #F8FAFC;
+    }
+
+    .hlc-trx-row:last-child {
+      border-bottom: none;
+    }
+
+    /* STATUS BADGES */
+    .badge-hot {
+      background: #FEF2F2;
+      color: #DC2626;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-warm {
+      background: #FFFBEB;
+      color: #D97706;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-cold {
+      background: #EFF6FF;
+      color: #2563EB;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-converted {
+      background: #F0FDF4;
+      color: #16A34A;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* FILTER */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: #fff;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .filter-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .2s;
+      color: var(--text-secondary);
+    }
+
+    .page-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .page-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .page-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    /* EMPTY */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 14px;
+    }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      min-width: 300px;
+      max-width: 380px;
+      animation: slideIn .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1
+      }
+    }
+
+    .toast-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .toast-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .toast-msg {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .toast-close {
+      margin-left: auto;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp .4s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .d1 {
+      animation-delay: .05s
+    }
+
+    .d2 {
+      animation-delay: .1s
+    }
+
+    .d3 {
+      animation-delay: .15s
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 10px
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════ SIDEBAR ════════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Sales</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span class="nav-label">Beranda</span>
+      </a>
+      <a href="prospect.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="nav-label">Prospek Saya</span>
+        <span class="nav-badge">24</span>
+      </a>
+      <a href="activities.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="nav-label">Aktivitas</span>
+      </a>
+      <a href="products.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <span class="nav-label">Produk</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Lainnya</div>
+      <a href="help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">RD</div>
+        <div class="user-info">
+          <div class="user-name">Rizky Dwi</div>
+          <div class="user-role">Sales · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════ TOPBAR ════════════ -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Beranda</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Produk</span>
+    </div>
+    <div class="search-bar">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+        <circle cx="11" cy="11" r="8" stroke-width="2" />
+        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input type="text" id="searchInput" placeholder="Cari nama produk, SKU, komposisi…" oninput="applyFilters()" />
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="showToast('info','Notifikasi','3 notifikasi belum dibaca')">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">RD</div>
+        <div>
+          <div class="topbar-uname">Rizky Dwi</div>
+          <div class="topbar-urole">Sales Rep</div>
+        </div>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════ MAIN ════════════ -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <!-- Page Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px" class="fade-up">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Katalog Produk</h1>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">Referensi produk farmasi & alat kesehatan
+            beserta riwayat pembelian klien</p>
+        </div>
+        <button class="btn btn-outline" onclick="showToast('info','Unduh','Mengunduh katalog produk PDF...')">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Unduh Katalog
+        </button>
+      </div>
+
+      <!-- Info Banner -->
+      <div
+        style="background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border:1px solid rgba(59,91,219,.2);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;margin-bottom:22px"
+        class="fade-up d1">
+        <span style="font-size:18px"><svg width="1em" height="1em" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg></span>
+        <div style="font-size:13px;color:#3730A3;font-weight:500">Halaman ini hanya untuk referensi. Riwayat pembelian
+          berasal dari transaksi yang dicatat di halaman detail prospek.</div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px" class="fade-up d1">
+        <div
+          style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <div style="font-size:22px;font-weight:800;letter-spacing:-1px">52</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:3px">Total Produk Aktif</div>
+        </div>
+        <div
+          style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <div style="font-size:22px;font-weight:800;color:#3B5BDB;letter-spacing:-1px">18</div>
+          <div
+            style="font-size:12px;color:var(--text-secondary);margin-top:3px;display:flex;align-items:center;gap:4px;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg> Obat Etikal
+          </div>
+        </div>
+        <div
+          style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <div style="font-size:22px;font-weight:800;color:#0694A2;letter-spacing:-1px">14</div>
+          <div
+            style="font-size:12px;color:var(--text-secondary);margin-top:3px;display:flex;align-items:center;gap:4px;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg> Alat Kesehatan
+          </div>
+        </div>
+        <div
+          style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <div style="font-size:22px;font-weight:800;color:#0E9F6E;letter-spacing:-1px">12</div>
+          <div
+            style="font-size:12px;color:var(--text-secondary);margin-top:3px;display:flex;align-items:center;gap:4px;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg> Suplemen & OTC
+          </div>
+        </div>
+        <div
+          style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <div style="font-size:22px;font-weight:800;color:#D97706;letter-spacing:-1px">3</div>
+          <div
+            style="font-size:12px;color:var(--text-secondary);margin-top:3px;display:flex;align-items:center;gap:4px;">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg> Produk Baru
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout: cat sidebar + products -->
+      <div style="display:flex;gap:20px;align-items:flex-start" class="fade-up d2">
+
+        <!-- Category Sidebar -->
+        <div class="cat-sidebar">
+          <div
+            style="background:var(--card);border-radius:14px;border:1px solid var(--border);padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+            <div
+              style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;padding:0 4px">
+              Kategori</div>
+            <div class="cat-item active" onclick="filterCat('semua',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg></span><span style="flex:1">Semua Produk</span><span class="cat-count">52</span></div>
+            <div class="cat-item" onclick="filterCat('obat-etikal',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg></span><span style="flex:1">Obat Etikal (Rx)</span><span class="cat-count">18</span></div>
+            <div class="cat-item" onclick="filterCat('obat-otc',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg></span><span style="flex:1">Obat OTC / Bebas</span><span class="cat-count">10</span></div>
+            <div class="cat-item" onclick="filterCat('suplemen',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg></span><span style="flex:1">Suplemen & Vitamin</span><span class="cat-count">12</span></div>
+            <div class="cat-item" onclick="filterCat('alkes',this)"><span class="cat-icon"><svg width="1em" height="1em"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg></span><span style="flex:1">Alat Kesehatan</span><span class="cat-count">14</span></div>
+            <div class="cat-item" onclick="filterCat('bahan-baku',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg></span><span style="flex:1">Bahan Baku Farmasi</span><span class="cat-count">6</span></div>
+            <div class="cat-item" onclick="filterCat('kosmetik',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg></span><span style="flex:1">Kosmetik Medis</span><span class="cat-count">4</span></div>
+            <div style="height:1px;background:var(--border);margin:10px 0"></div>
+            <div
+              style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:8px;padding:0 4px">
+              Label Khusus</div>
+            <div class="cat-item" onclick="filterCat('baru',this)"><span class="cat-icon"><svg width="1em" height="1em"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg></span><span style="flex:1">Produk Baru</span><span class="cat-count">3</span></div>
+            <div class="cat-item" onclick="filterCat('promo',this)"><span class="cat-icon"><svg width="1em" height="1em"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg></span><span style="flex:1">Promo & Diskon</span><span class="cat-count">5</span></div>
+            <div class="cat-item" onclick="filterCat('terlaris',this)"><span class="cat-icon"><svg width="1em"
+                  height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                </svg></span><span style="flex:1">Terlaris</span><span class="cat-count">8</span></div>
+          </div>
+        </div>
+
+        <!-- Product Area -->
+        <div style="flex:1;min-width:0">
+          <!-- Toolbar -->
+          <div class="filter-bar">
+            <select class="filter-select" onchange="doSort(this.value)">
+              <option value="">Urutkan: Relevansi</option>
+              <option value="name-asc">Nama A–Z</option>
+              <option value="name-desc">Nama Z–A</option>
+              <option value="price-asc">Harga Terendah</option>
+              <option value="price-desc">Harga Tertinggi</option>
+              <option value="buyers-desc">Terbanyak Dibeli</option>
+            </select>
+            <select class="filter-select" id="stockFilter" onchange="applyFilters()">
+              <option value="">Semua Stok</option>
+              <option value="ok">Stok Tersedia</option>
+              <option value="low">Stok Menipis</option>
+              <option value="empty">Habis</option>
+            </select>
+            <select class="filter-select" id="principalFilter" onchange="applyFilters()">
+              <option value="">Semua Prinsipal</option>
+              <option>PT Farma Nusantara</option>
+              <option>PT Medika Sejahtera</option>
+              <option>PT Kimia Prima</option>
+              <option>PT Vitalife Indonesia</option>
+            </select>
+            <div style="flex:1"></div>
+            <span style="font-size:12px;color:var(--text-secondary)" id="resultCount"></span>
+            <div class="view-toggle">
+              <button class="vt-btn active" id="vt-grid" onclick="setView('grid')">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Kartu
+              </button>
+              <button class="vt-btn" id="vt-list" onclick="setView('list')">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                Daftar
+              </button>
+            </div>
+          </div>
+
+          <!-- GRID VIEW -->
+          <div id="gridView">
+            <div class="products-grid" id="productGrid"></div>
+          </div>
+
+          <!-- LIST VIEW -->
+          <div id="listViewWrap" style="display:none">
+            <div
+              style="background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:36px"></th>
+                    <th>Nama Produk</th>
+                    <th>SKU</th>
+                    <th>Kategori</th>
+                    <th>Harga</th>
+                    <th>Stok</th>
+                    <th>Pembeli</th>
+                    <th style="width:70px">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="productTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state" style="display:none">
+            <div class="empty-icon"><svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                style="display:inline-block">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg></div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:6px">Produk tidak ditemukan</div>
+            <div style="font-size:13px;color:var(--text-secondary)">Coba ubah kata kunci atau filter kategori</div>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:10px"
+            id="paginationRow">
+            <div style="font-size:12px;color:var(--text-secondary)" id="paginationInfo">Menampilkan 1–12 dari 52 produk
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select class="filter-select" style="font-size:12px;padding:6px 10px">
+                <option>12 / hal</option>
+                <option>24 / hal</option>
+                <option>48 / hal</option>
+              </select>
+              <div class="pagination">
+                <button class="page-btn" disabled>‹</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn" onclick="showToast('info','Halaman 2','Memuat halaman 2...')">2</button>
+                <button class="page-btn" onclick="showToast('info','Halaman 3','Memuat halaman 3...')">3</button>
+                <button class="page-btn">›</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ════════════ DETAIL DRAWER ════════════ -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="productDrawer">
+    <div class="drawer-header">
+      <button class="drawer-close" onclick="closeDrawer()">×</button>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.4px" id="drawerName">—</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:3px" id="drawerSku">—</div>
+      </div>
+    </div>
+    <!-- Tab bar -->
+    <div class="tab-bar" id="drawerTabs">
+      <div class="tab-btn active" onclick="switchTab('info')">Informasi Produk</div>
+      <div class="tab-btn" onclick="switchTab('history')">Riwayat Pembelian</div>
+    </div>
+    <div class="drawer-body">
+      <!-- TAB INFO -->
+      <div class="tab-pane active" id="tab-info"></div>
+      <!-- TAB HISTORY -->
+      <div class="tab-pane" id="tab-history"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ══════════════════════════════════════════
+    // DATA — Produk Farmasi
+    // ══════════════════════════════════════════
+    const PRODUCTS = [
+      {
+        id: 1, name: 'Amoxicillin 500mg Kapsul', sku: 'OBT-RX-0001', cat: 'obat-etikal', catLabel: 'Obat Etikal (Rx)', principal: 'PT Farma Nusantara', unit: 'Strip (10 kapsul)', price: 18500, stock: 'ok', rx: true, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', bg: '#EFF6FF', terlaris: true,
+        desc: 'Antibiotik spektrum luas golongan penisilin untuk infeksi saluran napas, telinga, hidung, dan tenggorokan.',
+        komposisi: 'Amoxicillin trihydrate setara Amoxicillin 500 mg', bentuk: 'Kapsul keras', kemasan: 'Box 10 strip @ 10 kapsul',
+        indikasi: ['Infeksi saluran napas', 'Infeksi telinga (otitis)', 'Infeksi saluran kemih', 'Infeksi kulit'],
+        kontraindikasi: 'Hipersensitivitas terhadap penisilin atau sefalosporin', penyimpanan: 'Suhu <30°C, terlindung dari cahaya', noBPOM: 'DKL2334500120A1', golongan: 'Keras (Merah)'
+      },
+      {
+        id: 2, name: 'Metformin 500mg Tablet', sku: 'OBT-RX-0002', cat: 'obat-etikal', catLabel: 'Obat Etikal (Rx)', principal: 'PT Farma Nusantara', unit: 'Strip (10 tablet)', price: 8500, stock: 'ok', rx: true, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', bg: '#EFF6FF', terlaris: true,
+        desc: 'Antidiabetes oral lini pertama untuk diabetes mellitus tipe 2. Bekerja menurunkan produksi glukosa di hati.',
+        komposisi: 'Metformin HCl 500 mg', bentuk: 'Tablet salut selaput', kemasan: 'Box 10 strip @ 10 tablet',
+        indikasi: ['Diabetes Mellitus Tipe 2', 'Resistensi insulin'],
+        kontraindikasi: 'Gagal ginjal berat, gangguan hati', penyimpanan: 'Suhu <25°C', noBPOM: 'DKL0234700110A1', golongan: 'Keras (Merah)'
+      },
+      {
+        id: 3, name: 'Amlodipine 5mg Tablet', sku: 'OBT-RX-0003', cat: 'obat-etikal', catLabel: 'Obat Etikal (Rx)', principal: 'PT Medika Sejahtera', unit: 'Strip (10 tablet)', price: 12000, stock: 'ok', rx: true, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', bg: '#EFF6FF',
+        desc: 'Calcium channel blocker untuk hipertensi dan angina pektoris. Menurunkan tekanan darah secara bertahap.',
+        komposisi: 'Amlodipine besylate setara Amlodipine 5 mg', bentuk: 'Tablet', kemasan: 'Box 10 strip @ 10 tablet',
+        indikasi: ['Hipertensi', 'Angina pektoris stabil', 'Vasospastik angina'],
+        kontraindikasi: 'Syok kardiogenik, angina tidak stabil', penyimpanan: 'Suhu <30°C', noBPOM: 'DKL1234500210A1', golongan: 'Keras (Merah)'
+      },
+      {
+        id: 4, name: 'Omeprazole 20mg Kapsul', sku: 'OBT-RX-0004', cat: 'obat-etikal', catLabel: 'Obat Etikal (Rx)', principal: 'PT Kimia Prima', unit: 'Strip (7 kapsul)', price: 22000, stock: 'low', rx: true, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', bg: '#EFF6FF',
+        desc: 'Proton pump inhibitor (PPI) untuk tukak lambung, GERD, dan sindrom Zollinger-Ellison.',
+        komposisi: 'Omeprazole 20 mg', bentuk: 'Kapsul enteric-coated', kemasan: 'Box 10 strip @ 7 kapsul',
+        indikasi: ['Tukak lambung', 'GERD', 'Ulkus duodenum'],
+        kontraindikasi: 'Hipersensitivitas terhadap omeprazole', penyimpanan: 'Suhu <25°C, wadah tertutup', noBPOM: 'DKL0834500417A1', golongan: 'Keras (Merah)'
+      },
+      {
+        id: 5, name: 'Ceftriaxone 1g Injeksi', sku: 'OBT-RX-0005', cat: 'obat-etikal', catLabel: 'Obat Etikal (Rx)', principal: 'PT Farma Nusantara', unit: 'Vial', price: 85000, stock: 'ok', rx: true, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>', bg: '#FEF2F2',
+        desc: 'Sefalosporin generasi ketiga untuk infeksi berat — sepsis, meningitis, dan infeksi intra-abdominal.',
+        komposisi: 'Ceftriaxone sodium setara Ceftriaxone 1 g', bentuk: 'Serbuk injeksi', kemasan: 'Box 1 vial',
+        indikasi: ['Sepsis', 'Meningitis bakterial', 'Infeksi intra-abdominal'],
+        kontraindikasi: 'Hipersensitivitas sefalosporin', penyimpanan: 'Suhu 2–8°C', noBPOM: 'DKL1534800510A1', golongan: 'Keras (Merah)'
+      },
+      {
+        id: 6, name: 'Atorvastatin 20mg Tablet', sku: 'OBT-RX-0006', cat: 'obat-etikal', catLabel: 'Obat Etikal (Rx)', principal: 'PT Medika Sejahtera', unit: 'Strip (10 tablet)', price: 32000, stock: 'ok', rx: true, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', bg: '#EFF6FF', terlaris: true,
+        desc: 'Statin untuk menurunkan kolesterol LDL dan trigliserida. Mencegah risiko kardiovaskular.',
+        komposisi: 'Atorvastatin calcium setara Atorvastatin 20 mg', bentuk: 'Tablet salut selaput', kemasan: 'Box 3 strip @ 10 tablet',
+        indikasi: ['Hiperlipidemia', 'Dislipidemia', 'Pencegahan kardiovaskular'],
+        kontraindikasi: 'Penyakit hati aktif, kehamilan, menyusui', penyimpanan: 'Suhu <30°C', noBPOM: 'DKL0934600615A1', golongan: 'Keras (Merah)'
+      },
+      {
+        id: 7, name: 'Paracetamol 500mg Tablet', sku: 'OBT-OTC-001', cat: 'obat-otc', catLabel: 'Obat OTC / Bebas', principal: 'PT Farma Nusantara', unit: 'Strip (10 tablet)', price: 4500, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', bg: '#F0FDF4', terlaris: true,
+        desc: 'Analgesik dan antipiretik untuk nyeri ringan hingga sedang dan demam.',
+        komposisi: 'Paracetamol 500 mg', bentuk: 'Tablet', kemasan: 'Box 10 strip @ 10 tablet',
+        indikasi: ['Demam', 'Nyeri kepala', 'Nyeri gigi', 'Nyeri otot'],
+        kontraindikasi: 'Gangguan fungsi hati berat', penyimpanan: 'Suhu <30°C', noBPOM: 'DBL3400000110A1', golongan: 'Bebas (Hijau)'
+      },
+      {
+        id: 8, name: 'Antasida DOEN Tablet Kunyah', sku: 'OBT-OTC-002', cat: 'obat-otc', catLabel: 'Obat OTC / Bebas', principal: 'PT Kimia Prima', unit: 'Strip (10 tablet)', price: 6200, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', bg: '#FFFBEB',
+        desc: 'Kombinasi aluminium dan magnesium hidroksida untuk menetralisir asam lambung berlebih.',
+        komposisi: 'Al(OH)₃ 200 mg, Mg(OH)₂ 200 mg, Dimetikon 25 mg', bentuk: 'Tablet kunyah', kemasan: 'Box 10 strip @ 10 tablet',
+        indikasi: ['Maag', 'Dispepsia', 'Refluks asam'],
+        kontraindikasi: 'Gangguan ginjal berat', penyimpanan: 'Suhu <30°C', noBPOM: 'DBL0934500210A1', golongan: 'Bebas (Hijau)'
+      },
+      {
+        id: 9, name: 'CTM 4mg Tablet', sku: 'OBT-OTC-003', cat: 'obat-otc', catLabel: 'Obat OTC / Bebas', principal: 'PT Farma Nusantara', unit: 'Strip (10 tablet)', price: 3800, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', bg: '#F0FDF4',
+        desc: 'Antihistamin generasi pertama untuk alergi, rinitis alergi, dan urtikaria.',
+        komposisi: 'Chlorpheniramine maleate 4 mg', bentuk: 'Tablet', kemasan: 'Box 10 strip @ 10 tablet',
+        indikasi: ['Rinitis alergi', 'Urtikaria', 'Pilek alergi'],
+        kontraindikasi: 'Glaukoma sudut sempit, retensi urin', penyimpanan: 'Suhu <30°C', noBPOM: 'DBL0034300110A1', golongan: 'Bebas (Hijau)'
+      },
+      {
+        id: 10, name: 'Vitamin C 1000mg Effervescent', sku: 'SUP-0001', cat: 'suplemen', catLabel: 'Suplemen & Vitamin', principal: 'PT Vitalife Indonesia', unit: 'Tablet (per buah)', price: 4200, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>', bg: '#FFFBEB', baru: true,
+        desc: 'Suplemen vitamin C dosis tinggi effervescent untuk imunitas, antioksidan, dan produksi kolagen.',
+        komposisi: 'Ascorbic acid 1000 mg, Sodium bicarbonate, Asam sitrat', bentuk: 'Tablet effervescent', kemasan: 'Tube 10 tablet',
+        indikasi: ['Suplementasi vitamin C', 'Pencegahan flu', 'Antioksidan'],
+        kontraindikasi: 'Batu ginjal oksalat', penyimpanan: 'Suhu <25°C, tube tertutup rapat', noBPOM: 'SD151600291', golongan: 'Suplemen'
+      },
+      {
+        id: 11, name: 'Zinc + Vitamin D3 Kapsul', sku: 'SUP-0002', cat: 'suplemen', catLabel: 'Suplemen & Vitamin', principal: 'PT Vitalife Indonesia', unit: 'Kapsul (per buah)', price: 3500, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>', bg: '#FFFBEB',
+        desc: 'Kombinasi zinc dan vitamin D3 untuk imunitas, kesehatan tulang, dan metabolisme.',
+        komposisi: 'Zinc gluconate 10 mg, Cholecalciferol (Vit D3) 400 IU', bentuk: 'Kapsul gelatin', kemasan: 'Botol 30 kapsul',
+        indikasi: ['Defisiensi zinc', 'Defisiensi vitamin D', 'Kesehatan tulang'],
+        kontraindikasi: 'Hiperkalsemia, sarkoidosis', penyimpanan: 'Suhu <30°C', noBPOM: 'SD151700481', golongan: 'Suplemen'
+      },
+      {
+        id: 12, name: 'Omega-3 Fish Oil 1000mg Softgel', sku: 'SUP-0003', cat: 'suplemen', catLabel: 'Suplemen & Vitamin', principal: 'PT Vitalife Indonesia', unit: 'Kapsul (per buah)', price: 4800, stock: 'low', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>', bg: '#EFF6FF', promo: true,
+        desc: 'Omega-3 dari minyak ikan laut dalam untuk kesehatan jantung, otak, dan antiinflamasi.',
+        komposisi: 'Fish oil 1000 mg (EPA 180 mg, DHA 120 mg)', bentuk: 'Softgel', kemasan: 'Botol 30 softgel',
+        indikasi: ['Kesehatan jantung', 'Trigliserida tinggi', 'Antiinflamasi'],
+        kontraindikasi: 'Alergi ikan atau seafood', penyimpanan: 'Suhu <25°C', noBPOM: 'SD151800362', golongan: 'Suplemen'
+      },
+      {
+        id: 13, name: 'Tensimeter Digital Otomatis', sku: 'ALK-0001', cat: 'alkes', catLabel: 'Alat Kesehatan', principal: 'PT Medika Sejahtera', unit: 'Unit', price: 385000, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>', bg: '#F5F3FF', terlaris: true,
+        desc: 'Tensimeter digital lengan atas dengan teknologi osilometri. Layar LCD besar, memori 60 pengukuran.',
+        komposisi: '—', bentuk: 'Alat ukur tekanan darah digital', kemasan: '1 unit + manset + panduan',
+        indikasi: ['Pemantauan tekanan darah', 'Deteksi hipertensi'],
+        kontraindikasi: 'Tidak digunakan pada lengan terpasang IV', penyimpanan: 'Suhu ruang, hindari benturan', noBPOM: 'KEMENKES RI AKL 21401621617', golongan: 'Alat Kesehatan'
+      },
+      {
+        id: 14, name: 'Glukometer Set Lengkap', sku: 'ALK-0002', cat: 'alkes', catLabel: 'Alat Kesehatan', principal: 'PT Medika Sejahtera', unit: 'Set', price: 285000, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>', bg: '#FEF2F2',
+        desc: 'Set alat cek gula darah digital lengkap dengan strip, lanset, dan lancet device. Hasil dalam 5 detik.',
+        komposisi: '—', bentuk: 'Alat ukur glukosa darah', kemasan: '1 glukometer + 10 strip + 10 lanset + lancet device',
+        indikasi: ['Monitoring kadar gula darah', 'Pengelolaan diabetes'],
+        kontraindikasi: '—', penyimpanan: 'Strip: suhu 2–30°C', noBPOM: 'KEMENKES RI AKL 21401521419', golongan: 'Alat Kesehatan'
+      },
+      {
+        id: 15, name: 'Pulse Oximeter Fingertip', sku: 'ALK-0003', cat: 'alkes', catLabel: 'Alat Kesehatan', principal: 'PT Medika Sejahtera', unit: 'Unit', price: 145000, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>', bg: '#ECFEFF', baru: true,
+        desc: 'Alat ukur saturasi oksigen (SpO2) dan denyut nadi non-invasif. Layar OLED, hasil dalam 10 detik.',
+        komposisi: '—', bentuk: 'Alat ukur SpO2 dan pulse rate', kemasan: '1 unit + lanyard + baterai',
+        indikasi: ['Monitoring SpO2', 'Pasien ISPA', 'Evaluasi pasien asma/PPOK'],
+        kontraindikasi: 'Tidak akurat pada kuku palsu tebal', penyimpanan: 'Suhu 10–40°C', noBPOM: 'KEMENKES RI AKL 21402021521', golongan: 'Alat Kesehatan'
+      },
+      {
+        id: 16, name: 'Termometer Digital Aksila', sku: 'ALK-0004', cat: 'alkes', catLabel: 'Alat Kesehatan', principal: 'PT Kimia Prima', unit: 'Unit', price: 55000, stock: 'ok', rx: false, emoji: '<svg width="1em" height="1em" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', bg: '#F0FDF4', promo: true,
+        desc: 'Termometer digital fleksibel untuk suhu ketiak. Bunyi beep saat selesai, hasil dalam 60 detik.',
+        komposisi: '—', bentuk: 'Termometer digital', kemasan: '1 unit + case + baterai',
+        indikasi: ['Pengukuran suhu tubuh', 'Deteksi demam'],
+        kontraindikasi: '—', penyimpanan: 'Suhu 10–40°C, jauhkan dari cairan', noBPOM: 'KEMENKES RI AKL 21401319812', golongan: 'Alat Kesehatan'
+      },
+    ];
+
+    // ══════════════════════════════════════════
+    // PURCHASE HISTORY per lead per product
+    // ══════════════════════════════════════════
+    const HISTORY = {
+      // Amoxicillin
+      1: [
+        {
+          leadId: 1, name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', color: '#3B5BDB', transactions: [
+            { date: '15 Feb 2026', orderId: 'SO-2026-0234', qty: 200, unit: 'Strip', total: 3700000, notes: 'Stok bulanan rutin' },
+            { date: '10 Jan 2026', orderId: 'SO-2026-0098', qty: 150, unit: 'Strip', total: 2775000, notes: 'Pembelian pertama' },
+          ]
+        },
+        {
+          leadId: 2, name: 'Klinik Pratama Husada', type: 'corporate', status: 'hot', color: '#0E9F6E', transactions: [
+            { date: '1 Mar 2026', orderId: 'SO-2026-0312', qty: 100, unit: 'Strip', total: 1850000, notes: 'Keperluan klinik harian' },
+          ]
+        },
+        {
+          leadId: 3, name: 'dr. Hendra Gunawan', type: 'individual', status: 'warm', color: '#7C3AED', transactions: [
+            { date: '20 Feb 2026', orderId: 'SO-2026-0278', qty: 50, unit: 'Strip', total: 925000, notes: 'Resep pribadi klinik' },
+          ]
+        },
+      ],
+      // Metformin
+      2: [
+        {
+          leadId: 1, name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', color: '#3B5BDB', transactions: [
+            { date: '15 Feb 2026', orderId: 'SO-2026-0235', qty: 300, unit: 'Strip', total: 2550000, notes: 'Pasien DM tipe 2 banyak' },
+            { date: '12 Jan 2026', orderId: 'SO-2026-0101', qty: 200, unit: 'Strip', total: 1700000, notes: 'Restock rutin' },
+          ]
+        },
+        {
+          leadId: 4, name: 'RS Bhayangkara Surabaya', type: 'corporate', status: 'hot', color: '#DC2626', transactions: [
+            { date: '5 Mar 2026', orderId: 'SO-2026-0330', qty: 500, unit: 'Strip', total: 4250000, notes: 'Pengadaan instalasi farmasi' },
+          ]
+        },
+      ],
+      // Paracetamol
+      7: [
+        {
+          leadId: 1, name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', color: '#3B5BDB', transactions: [
+            { date: '1 Apr 2026', orderId: 'SO-2026-0420', qty: 500, unit: 'Strip', total: 2250000, notes: 'Stok musim pancaroba' },
+            { date: '1 Mar 2026', orderId: 'SO-2026-0315', qty: 400, unit: 'Strip', total: 1800000, notes: 'Restock bulanan' },
+            { date: '1 Feb 2026', orderId: 'SO-2026-0210', qty: 350, unit: 'Strip', total: 1575000, notes: 'Order rutin' },
+          ]
+        },
+        {
+          leadId: 2, name: 'Klinik Pratama Husada', type: 'corporate', status: 'hot', color: '#0E9F6E', transactions: [
+            { date: '20 Mar 2026', orderId: 'SO-2026-0340', qty: 200, unit: 'Strip', total: 900000, notes: 'Keperluan klinik' },
+          ]
+        },
+        {
+          leadId: 5, name: 'Sari Dewi', type: 'individual', status: 'warm', color: '#D97706', transactions: [
+            { date: '10 Feb 2026', orderId: 'SO-2026-0218', qty: 30, unit: 'Strip', total: 135000, notes: 'Pembelian pribadi' },
+          ]
+        },
+      ],
+      // Tensimeter
+      13: [
+        {
+          leadId: 4, name: 'RS Bhayangkara Surabaya', type: 'corporate', status: 'hot', color: '#DC2626', transactions: [
+            { date: '10 Mar 2026', orderId: 'SO-2026-0325', qty: 15, unit: 'Unit', total: 5775000, notes: 'Pengadaan poliklinik' },
+          ]
+        },
+        {
+          leadId: 6, name: 'Klinik Maju Bersama', type: 'corporate', status: 'converted', color: '#0694A2', transactions: [
+            { date: '5 Jan 2026', orderId: 'SO-2026-0055', qty: 5, unit: 'Unit', total: 1925000, notes: 'Pembukaan klinik baru' },
+            { date: '20 Feb 2026', orderId: 'SO-2026-0260', qty: 3, unit: 'Unit', total: 1155000, notes: 'Penambahan unit' },
+          ]
+        },
+        {
+          leadId: 3, name: 'dr. Hendra Gunawan', type: 'individual', status: 'warm', color: '#7C3AED', transactions: [
+            { date: '15 Feb 2026', orderId: 'SO-2026-0245', qty: 1, unit: 'Unit', total: 385000, notes: 'Praktek pribadi' },
+          ]
+        },
+      ],
+      // Glukometer
+      14: [
+        {
+          leadId: 1, name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', color: '#3B5BDB', transactions: [
+            { date: '20 Jan 2026', orderId: 'SO-2026-0130', qty: 10, unit: 'Set', total: 2850000, notes: 'Display dan stok apotek' },
+          ]
+        },
+        {
+          leadId: 4, name: 'RS Bhayangkara Surabaya', type: 'corporate', status: 'hot', color: '#DC2626', transactions: [
+            { date: '1 Mar 2026', orderId: 'SO-2026-0305', qty: 20, unit: 'Set', total: 5700000, notes: 'Instalasi rawat inap' },
+          ]
+        },
+      ],
+      // Vitamin C Effervescent
+      10: [
+        {
+          leadId: 1, name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', color: '#3B5BDB', transactions: [
+            { date: '1 Apr 2026', orderId: 'SO-2026-0415', qty: 100, unit: 'Tube', total: 420000, notes: 'Produk baru, uji pasar' },
+          ]
+        },
+        {
+          leadId: 2, name: 'Klinik Pratama Husada', type: 'corporate', status: 'hot', color: '#0E9F6E', transactions: [
+            { date: '15 Mar 2026', orderId: 'SO-2026-0350', qty: 50, unit: 'Tube', total: 210000, notes: 'Rekomendasi ke pasien' },
+          ]
+        },
+      ],
+      // Atorvastatin
+      6: [
+        {
+          leadId: 4, name: 'RS Bhayangkara Surabaya', type: 'corporate', status: 'hot', color: '#DC2626', transactions: [
+            { date: '1 Mar 2026', orderId: 'SO-2026-0308', qty: 200, unit: 'Strip', total: 6400000, notes: 'Pengadaan kardiologi' },
+            { date: '1 Feb 2026', orderId: 'SO-2026-0208', qty: 150, unit: 'Strip', total: 4800000, notes: 'Restock rutin' },
+          ]
+        },
+        {
+          leadId: 1, name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', color: '#3B5BDB', transactions: [
+            { date: '20 Mar 2026', orderId: 'SO-2026-0360', qty: 80, unit: 'Strip', total: 2560000, notes: 'Pasien hipertensi' },
+          ]
+        },
+      ],
+    };
+
+    // Helper: get buyer count & total for a product
+    function getBuyerStats(id) {
+      const h = HISTORY[id] || [];
+      const totalQty = h.reduce((s, l) => s + l.transactions.reduce((ts, t) => ts + t.qty, 0), 0);
+      const totalVal = h.reduce((s, l) => s + l.transactions.reduce((ts, t) => ts + t.total, 0), 0);
+      return { buyers: h.length, totalQty, totalVal };
+    }
+
+    // ══════════════════════════════════════════
+    // RENDERING
+    // ══════════════════════════════════════════
+    let currentProducts = [...PRODUCTS];
+    let currentCat = 'semua';
+    let currentView = 'grid';
+
+    function catColor(cat) { const m = { 'obat-etikal': 'rgba(59,91,219,.1)', 'obat-otc': 'rgba(14,159,110,.1)', 'suplemen': 'rgba(217,119,6,.1)', 'alkes': 'rgba(124,58,237,.1)', 'bahan-baku': 'rgba(6,148,162,.1)', 'kosmetik': 'rgba(236,72,153,.1)' }; return m[cat] || '#F1F5F9'; }
+    function catTextColor(cat) { const m = { 'obat-etikal': '#3B5BDB', 'obat-otc': '#0E9F6E', 'suplemen': '#D97706', 'alkes': '#7C3AED', 'bahan-baku': '#0694A2', 'kosmetik': '#DB2777' }; return m[cat] || '#64748B'; }
+    function stockCls(s) { return { ok: 'stock-ok', low: 'stock-low', empty: 'stock-empty' }[s] || 'stock-ok'; }
+    function stockLabel(s) { return { ok: '✓ Tersedia', low: '⚠ Menipis', empty: '✗ Habis' }[s] || '—'; }
+    function fmtRp(v) { if (v >= 1000000) return 'Rp ' + (v / 1000000).toFixed(1).replace('.0', '') + ' Jt'; return 'Rp ' + v.toLocaleString('id-ID'); }
+
+    function renderGrid(prods) {
+      const g = document.getElementById('productGrid');
+      if (!prods.length) { g.innerHTML = ''; document.getElementById('emptyState').style.display = 'block'; return; }
+      document.getElementById('emptyState').style.display = 'none';
+      g.innerHTML = prods.map(p => {
+        const s = getBuyerStats(p.id);
+        return `<div class="product-card" onclick="openDrawer(${p.id})">
+      <div class="product-card-img" style="background:${p.bg}">
+        <span style="font-size:52px">${p.emoji}</span>
+        ${p.rx ? '<span class="rx-badge">Rx</span>' : ''}
+        ${p.baru ? '<span class="new-badge">BARU</span>' : ''}
+        ${p.promo && !p.baru ? '<span class="promo-badge">PROMO</span>' : ''}
+      </div>
+      <div class="product-card-body">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+          <span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;background:${catColor(p.cat)};color:${catTextColor(p.cat)}">${p.catLabel}</span>
+          ${p.terlaris ? '<span style="font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;background:#FEF2F2;color:#DC2626">🔥 Terlaris</span>' : ''}
+        </div>
+        <div class="product-card-name">${p.name}</div>
+        <div class="product-card-sku">${p.sku}</div>
+        <div class="product-card-desc">${p.desc}</div>
+        <div class="product-card-footer">
+          <div>
+            <div class="product-price">${fmtRp(p.price)}</div>
+            <div class="product-unit">per ${p.unit}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+            <span class="stock-badge ${stockCls(p.stock)}">${stockLabel(p.stock)}</span>
+            ${s.buyers > 0
+            ? `<span class="buyer-badge" style="display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg> ${s.buyers} klien pernah beli</span>`
+            : `<span class="buyer-badge" style="color:#CBD5E1;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg> Belum ada pembelian</span>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+    function renderTable(prods) {
+      const tb = document.getElementById('productTableBody');
+      if (!prods.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">Tidak ada produk ditemukan</td></tr>'; return; }
+      tb.innerHTML = prods.map(p => {
+        const s = getBuyerStats(p.id);
+        return `<tr onclick="openDrawer(${p.id})">
+      <td style="text-align:center;font-size:20px">${p.emoji}</td>
+      <td>
+        <div style="font-weight:700">${p.name}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${p.desc.substring(0, 55)}…</div>
+      </td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-secondary)">${p.sku}</td>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;background:${catColor(p.cat)};color:${catTextColor(p.cat)}">${p.catLabel}</span></td>
+      <td style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--primary)">${fmtRp(p.price)}</td>
+      <td><span class="stock-badge ${stockCls(p.stock)}">${stockLabel(p.stock)}</span></td>
+      <td>
+        ${s.buyers > 0
+            ? `<div style="font-size:13px;font-weight:700;color:var(--text-primary)">${s.buyers} klien</div><div style="font-size:11px;color:var(--text-secondary);margin-top:1px">${fmtRp(s.totalVal)} total</div>`
+            : `<span style="font-size:12px;color:var(--text-muted)">—</span>`}
+      </td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-outline btn-xs" onclick="openDrawer(${p.id})">Detail</button></td>
+    </tr>`;
+      }).join('');
+    }
+
+    function render() {
+      document.getElementById('resultCount').textContent = `${currentProducts.length} produk`;
+      document.getElementById('paginationInfo').textContent = `Menampilkan 1–${Math.min(12, currentProducts.length)} dari ${currentProducts.length} produk`;
+      document.getElementById('emptyState').style.display = 'none';
+      if (currentView === 'grid') renderGrid(currentProducts);
+      else renderTable(currentProducts);
+    }
+
+    // ══════════════════════════════════════════
+    // FILTER / SORT / SEARCH
+    // ══════════════════════════════════════════
+    function filterCat(cat, el) {
+      currentCat = cat;
+      document.querySelectorAll('.cat-item').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const stock = document.getElementById('stockFilter').value;
+      const principal = document.getElementById('principalFilter').value;
+      currentProducts = PRODUCTS.filter(p => {
+        const matchCat = currentCat === 'semua' ? true : currentCat === 'baru' ? p.baru : currentCat === 'promo' ? p.promo : currentCat === 'terlaris' ? p.terlaris : p.cat === currentCat;
+        const matchQ = !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || (p.komposisi && p.komposisi.toLowerCase().includes(q));
+        const matchStock = !stock || p.stock === stock;
+        const matchPrincipal = !principal || p.principal === principal;
+        return matchCat && matchQ && matchStock && matchPrincipal;
+      });
+      render();
+    }
+
+    function doSort(val) {
+      if (!val) return;
+      if (val === 'name-asc') currentProducts.sort((a, b) => a.name.localeCompare(b.name));
+      else if (val === 'name-desc') currentProducts.sort((a, b) => b.name.localeCompare(a.name));
+      else if (val === 'price-asc') currentProducts.sort((a, b) => a.price - b.price);
+      else if (val === 'price-desc') currentProducts.sort((a, b) => b.price - a.price);
+      else if (val === 'buyers-desc') currentProducts.sort((a, b) => getBuyerStats(b.id).buyers - getBuyerStats(a.id).buyers);
+      render();
+    }
+
+    function setView(v) {
+      currentView = v;
+      document.getElementById('gridView').style.display = v === 'grid' ? 'block' : 'none';
+      document.getElementById('listViewWrap').style.display = v === 'list' ? 'block' : 'none';
+      document.getElementById('vt-grid').classList.toggle('active', v === 'grid');
+      document.getElementById('vt-list').classList.toggle('active', v === 'list');
+      render();
+    }
+
+    // ══════════════════════════════════════════
+    // DRAWER
+    // ══════════════════════════════════════════
+    function openDrawer(id) {
+      const p = PRODUCTS.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('drawerName').textContent = p.name;
+      document.getElementById('drawerSku').textContent = p.sku + ' · ' + p.principal;
+
+      // ── Tab Info
+      const indChips = p.indikasi.map(i => `<span style="display:inline-block;padding:3px 10px;background:#EEF2FF;color:var(--primary);border-radius:20px;font-size:11px;font-weight:600;margin:2px">${i}</span>`).join('');
+      document.getElementById('tab-info').innerHTML = `
+    <div style="height:140px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:64px;background:${p.bg};margin-bottom:18px;position:relative">
+      ${p.emoji}
+      ${p.rx ? '<span class="rx-badge" style="font-size:10px;padding:3px 10px">Obat Keras — Resep Dokter</span>' : ''}
+      ${p.baru ? '<span class="new-badge" style="font-size:10px;padding:3px 10px">PRODUK BARU</span>' : ''}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#F8FAFC;border:1px solid var(--border);border-radius:12px;margin-bottom:18px">
+      <div>
+        <div style="font-size:22px;font-weight:800;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:-1px">${fmtRp(p.price)}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">per ${p.unit}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="stock-badge ${stockCls(p.stock)}" style="font-size:12px;padding:4px 12px">${stockLabel(p.stock)}</span>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${p.catLabel}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="detail-section-title">Deskripsi</div>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.8">${p.desc}</p>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="detail-section-title">Informasi Produk</div>
+      ${dr('Komposisi', p.komposisi)}${dr('Bentuk Sediaan', p.bentuk)}${dr('Kemasan', p.kemasan)}${dr('Golongan', '<strong>' + p.golongan + '</strong>')}${dr('No. BPOM/Kemenkes', '<span style="font-family:JetBrains Mono,monospace;font-size:12px">' + p.noBPOM + '</span>')}${dr('Prinsipal', p.principal)}
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="detail-section-title">Indikasi / Kegunaan</div>
+      <div>${indChips}</div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div class="detail-section-title">Kontraindikasi & Penyimpanan</div>
+      ${dr('Kontraindikasi', '<span style="color:#DC2626">' + p.kontraindikasi + '</span>')}${dr('Penyimpanan', p.penyimpanan)}
+    </div>
+    ${p.rx ? `<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px 16px;display:flex;gap:10px;align-items:flex-start">
+      <span style="flex-shrink:0;color:#D97706"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
+      <div style="font-size:12px;color:#92400E;font-weight:500">Produk ini adalah <strong>Obat Keras</strong>. Penjualan hanya ke fasilitas kesehatan berlisensi dengan resep dokter yang sah.</div>
+    </div>`: ''}`;
+
+      // ── Tab History
+      const history = HISTORY[id] || [];
+      const stats = getBuyerStats(id);
+      let histHtml = '';
+
+      if (!history.length) {
+        histHtml = `<div style="text-align:center;padding:48px 20px">
+      <div style="color:var(--text-muted);display:flex;justify-content:center;margin-bottom:12px"><svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg></div>
+      <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px">Belum ada riwayat pembelian</div>
+      <div style="font-size:13px;color:var(--text-secondary)">Produk ini belum pernah dibeli oleh prospek mana pun</div>
+    </div>`;
+      } else {
+        // Summary bar
+        const totalTrx = history.reduce((s, l) => s + l.transactions.length, 0);
+        histHtml += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="background:#EEF2FF;border-radius:10px;padding:12px 14px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--primary)">${stats.buyers}</div>
+        <div style="font-size:11px;color:#3730A3;font-weight:600;margin-top:2px">Klien Pembeli</div>
+      </div>
+      <div style="background:#F0FDF4;border-radius:10px;padding:12px 14px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:#16A34A">${totalTrx}</div>
+        <div style="font-size:11px;color:#15803D;font-weight:600;margin-top:2px">Total Transaksi</div>
+      </div>
+      <div style="background:#FFFBEB;border-radius:10px;padding:12px 14px;text-align:center">
+        <div style="font-size:16px;font-weight:800;color:#D97706;font-family:'JetBrains Mono',monospace">${fmtRp(stats.totalVal)}</div>
+        <div style="font-size:11px;color:#B45309;font-weight:600;margin-top:2px">Total Nilai</div>
+      </div>
+    </div>`;
+
+        histHtml += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px">Riwayat Per Klien</div>`;
+
+        history.forEach((lead, idx) => {
+          const leadTotalVal = lead.transactions.reduce((s, t) => s + t.total, 0);
+          const leadTotalQty = lead.transactions.reduce((s, t) => s + t.qty, 0);
+          const statusBadge = { hot: 'badge-hot', warm: 'badge-warm', cold: 'badge-cold', converted: 'badge-converted' }[lead.status] || '';
+          const statusLabel = { hot: 'Hot', warm: 'Warm', cold: 'Cold', converted: 'Terkonversi' }[lead.status] || '';
+          const typeLabel = lead.type === 'corporate' ? 'Perusahaan' : 'Perorangan';
+
+          histHtml += `<div class="history-lead-card">
+        <div class="hlc-header" onclick="toggleLeadHistory(${idx})">
+          <div class="hlc-avatar" style="background:${lead.color}">${lead.name.charAt(0)}</div>
+          <div class="hlc-body">
+            <div class="hlc-name">${lead.name}</div>
+            <div class="hlc-sub">
+              ${typeLabel} · ${lead.transactions.length} transaksi · Total ${leadTotalQty.toLocaleString('id-ID')} ${lead.transactions[0].unit}
+              &nbsp;&nbsp;<span class="${statusBadge}">${statusLabel}</span>
+            </div>
+          </div>
+          <div class="hlc-right">
+            <div class="hlc-total">${fmtRp(leadTotalVal)}</div>
+            <div class="hlc-date">Terakhir: ${lead.transactions[0].date}</div>
+          </div>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="flex-shrink:0;margin-left:6px;transition:transform .2s" id="chevron-${idx}"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <div class="hlc-detail" id="hlc-detail-${idx}">
+          <div style="padding:10px 16px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted)">Rincian Transaksi</div>
+          ${lead.transactions.map(t => `
+            <div class="hlc-trx-row">
+              <div style="flex:1">
+                <div style="font-size:12px;font-weight:700">${t.date}</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${t.notes}</div>
+              </div>
+              <div style="text-align:center;min-width:80px">
+                <div style="font-size:13px;font-weight:700">${t.qty.toLocaleString('id-ID')}</div>
+                <div style="font-size:10px;color:var(--text-muted)">${t.unit}</div>
+              </div>
+              <div style="text-align:right;min-width:110px">
+                <div style="font-size:13px;font-weight:700;color:var(--primary);font-family:'JetBrains Mono',monospace">${fmtRp(t.total)}</div>
+                <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">${t.orderId}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+        });
+      }
+
+      document.getElementById('tab-history').innerHTML = histHtml;
+
+      // Show drawer
+      switchTab('info');
+      document.getElementById('drawerOverlay').classList.add('show');
+      document.getElementById('productDrawer').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function dr(k, v) { return `<div style="display:flex;gap:12px;margin-bottom:10px;align-items:flex-start"><span style="font-size:12px;color:var(--text-muted);width:140px;flex-shrink:0;font-weight:500;padding-top:1px">${k}</span><span style="font-size:13px;color:var(--text-primary);font-weight:500;flex:1">${v}</span></div>`; }
+
+    function toggleLeadHistory(idx) {
+      const detail = document.getElementById('hlc-detail-' + idx);
+      const chevron = document.getElementById('chevron-' + idx);
+      const isOpen = detail.classList.contains('open');
+      detail.classList.toggle('open');
+      chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('show');
+      document.getElementById('productDrawer').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // ── Tabs inside drawer
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', ['info', 'history'][i] === name);
+      });
+      document.getElementById('tab-info').classList.toggle('active', name === 'info');
+      document.getElementById('tab-history').classList.toggle('active', name === 'history');
+    }
+
+    // ── Sidebar / Toast
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    let toastCount = 0;
+    function showToast(type, title, msg) {
+      if (toastCount >= 3) { const f = document.getElementById('toastContainer').firstChild; if (f) f.remove(); }
+      const icons = {
+        success: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10B981"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        error: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#EF4444"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        warning: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#F59E0B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+        info: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#3B82F6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      };
+      const id = 'toast-' + Date.now();
+      const el = document.createElement('div');
+      el.className = 'toast'; el.id = id;
+      el.innerHTML = `<span class="toast-icon" style="display:flex;align-items:center;">${icons[type] || icons['info']}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="document.getElementById('${id}').remove()">×</span>`;
+      document.getElementById('toastContainer').appendChild(el);
+      toastCount++;
+      setTimeout(() => { if (document.getElementById(id)) { document.getElementById(id).remove(); toastCount = Math.max(0, toastCount - 1); } }, 4000);
+    }
+
+    // Init
+    render();
+    setTimeout(() => showToast('info', 'Katalog Produk', '52 produk aktif. Klik produk untuk melihat siapa saja klien yang pernah membelinya.'), 600);
+  </script>
+</body>
+
+</html>

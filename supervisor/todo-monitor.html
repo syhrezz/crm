@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Monitor To-Do Tim</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB; --primary-light: #EEF2FF; --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A; --sidebar-text: #94A3B8;
+      --success: #0E9F6E; --warning: #E3A008; --danger: #F05252;
+      --surface: #F8FAFC; --card: #FFFFFF; --border: #E2E8F0;
+      --text-primary: #0F172A; --text-secondary: #64748B; --text-muted: #94A3B8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--surface); color: var(--text-primary); overflow-x: hidden; }
+
+    /* ── SIDEBAR (Disederhanakan untuk prototipe) ── */
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; transition: width .3s cubic-bezier(.4, 0, .2, 1); border-right: 1px solid rgba(255, 255, 255, .05); }
+    .sidebar.collapsed { width: 68px; }
+    .sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, .06); min-height: 64px; }
+    .logo-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; }
+    .logo-text { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.5px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .logo-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+    .sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub { opacity: 0; width: 0; }
+    .sidebar-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(148, 163, 184, .4); padding: 16px 20px 6px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .sidebar.collapsed .sidebar-section-label { opacity: 0; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; overflow-x: hidden; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .1); border-radius: 10px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--sidebar-text); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; margin-bottom: 2px; text-decoration: none; position: relative; }
+    .nav-item:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(14, 159, 110, .25), rgba(59, 91, 219, .2)); color: #fff; box-shadow: inset 0 0 0 1px rgba(14, 159, 110, .35); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #0E9F6E; border-radius: 0 4px 4px 0; }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: .8; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-label { transition: opacity .2s; }
+    .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+    .nav-badge { margin-left: auto; background: #F05252; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; flex-shrink: 0; transition: opacity .2s; }
+    .nav-badge.green { background: #0E9F6E; }
+    .sidebar.collapsed .nav-badge { opacity: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255, 255, 255, .06); }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; overflow: hidden; }
+    .user-card:hover { background: rgba(255, 255, 255, .06); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; }
+    .user-role-label { font-size: 11px; color: var(--sidebar-text); white-space: nowrap; }
+    .sidebar.collapsed .user-info { opacity: 0; width: 0; }
+
+    /* ── TOPBAR ── */
+    .topbar { position: fixed; left: 260px; top: 0; right: 0; height: 64px; background: rgba(248, 250, 252, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 90; transition: left .3s cubic-bezier(.4, 0, .2, 1); }
+    .topbar.expanded { left: 68px; }
+    .toggle-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+    .toggle-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .breadcrumb span { font-size: 13px; color: var(--text-secondary); }
+    .breadcrumb .current { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .search-bar { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; height: 38px; width: 260px; transition: all .2s; }
+    .search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 91, 219, .1); }
+    .search-bar input { border: none; outline: none; background: transparent; font-size: 13px; font-family: inherit; color: var(--text-primary); width: 100%; }
+    .search-bar input::placeholder { color: var(--text-muted); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; position: relative; }
+    .icon-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .notif-dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; background: #F05252; border-radius: 50%; border: 2px solid #fff; }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; border: 1px solid transparent; }
+    .topbar-user:hover { background: #fff; border-color: var(--border); }
+    .topbar-avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .topbar-uname { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-urole { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 260px; padding-top: 64px; min-height: 100vh; transition: margin-left .3s cubic-bezier(.4, 0, .2, 1); }
+    .main.expanded { margin-left: 68px; }
+    .content { padding: 28px; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; border: none; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 1px 3px rgba(59, 91, 219, .3); }
+    .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(59, 91, 219, .35); transform: translateY(-1px); }
+    .btn-outline { background: #fff; color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+    .btn-warn { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+    .btn-warn:hover { background: #D97706; color: #fff; }
+
+    /* ── CARD & ALERTS ── */
+    .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    .alert-banner { background: linear-gradient(135deg, #FEF3C7, #FFFBEB); border: 1px solid #FCD34D; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .alert-text { font-size: 13px; font-weight: 500; color: #92400E; display: flex; align-items: center; gap: 10px; }
+    .alert-text strong { font-weight: 700; color: #78350F; }
+
+    /* ── TABLE ── */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); background: #F8FAFC; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #F1F5F9; transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FAFBFF; }
+    tbody tr.overdue-row { background: #FEF9F9; }
+    tbody tr.overdue-row:hover { background: #FEE2E2; }
+    tbody td { padding: 14px 16px; font-size: 13px; vertical-align: middle; }
+    
+    .table-toolbar { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+    .filters { display: flex; gap: 10px; align-items: center; }
+    .filter-select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-family: inherit; outline: none; appearance: none; background: #fff; cursor: pointer; min-width: 140px; }
+    .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 91, 219, .1); }
+
+    /* ── BADGES ── */
+    .sales-avatar-sm { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .pri-high { background: #FEF2F2; color: #DC2626; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+    .pri-med { background: #FFFBEB; color: #D97706; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+    .pri-low { background: #F0FDF4; color: #16A34A; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+    
+    .status-overdue { color: #DC2626; font-weight: 700; font-size: 11px; display:flex; align-items:center; gap:4px; }
+    .status-pending { color: #D97706; font-weight: 600; font-size: 11px; display:flex; align-items:center; gap:4px; }
+    .status-done { color: #16A34A; font-weight: 600; font-size: 11px; display:flex; align-items:center; gap:4px; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .4); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal { background: #fff; border-radius: 18px; width: 480px; max-width: 96vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0, 0, 0, .18); transform: scale(.96) translateY(12px); transition: all .25s cubic-bezier(.4, 0, .2, 1); }
+    .modal-overlay.show .modal { transform: scale(1) translateY(0); }
+    .modal-header { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .modal-title { font-size: 17px; font-weight: 800; letter-spacing: -.4px; }
+    .modal-close-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-secondary); transition: all .2s; }
+    .modal-close-btn:hover { background: #FEF2F2; border-color: #FECACA; color: #DC2626; }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer { padding: 16px 24px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border); }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: inherit; transition: all .2s; outline: none; }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 91, 219, .1); }
+
+    /* ── TOAST ── */
+    .toast-container { position: fixed; top: 80px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: #fff; border-radius: 12px; border: 1px solid var(--border); padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.12); min-width: 300px; max-width: 380px; animation: slideIn .3s cubic-bezier(.4, 0, .2, 1); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+    .toast-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .toast-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .toast-msg { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .toast-close { margin-left: auto; cursor: pointer; color: var(--text-muted); font-size: 16px; line-height: 1; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Supervisor</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="team.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Manajemen Sales</span>
+      </a>
+      <a href="todo-monitor.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="nav-label">Monitor To-Do</span>
+        <span class="nav-badge" id="sidebarBadge">5</span>
+      </a>
+      <a href="map.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Peta Prospek</span>
+      </a>
+      <a href="reports.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">Laporan</span>
+      </a>
+      <a href="announcements.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        <span class="nav-label">Pengumuman</span>
+        <span class="nav-badge green">2</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Akun</div>
+      <a href="profile.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="nav-label">Profil Saya</span>
+      </a>
+      <a href="../sales/help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">DR</div>
+        <div class="user-info">
+          <div class="user-name">Dian Rahayu</div>
+          <div class="user-role-label">Supervisor · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Dashboard</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Monitor To-Do Tim</span>
+    </div>
+    <div class="search-bar">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8"><circle cx="11" cy="11" r="8" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="Cari tugas, sales, atau prospek…"/>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="window.location.href='notifications.html'">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">DR</div>
+        <div>
+          <div class="topbar-uname">Dian Rahayu</div>
+          <div class="topbar-urole">Supervisor</div>
+        </div>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <!-- Alert Banner for Overdue -->
+      <div class="alert-banner">
+        <div class="alert-text">
+          <span style="font-size:20px">⚠️</span>
+          <span>Tim Anda memiliki <strong>5 tugas yang sudah melewati batas waktu</strong>. Direkomendasikan untuk segera mengirimkan pengingat kepada tim.</span>
+        </div>
+        <button class="btn btn-warn btn-sm" onclick="openBulkModal()">Kirim Pengingat Massal</button>
+      </div>
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Monitor To-Do</h1>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">Pantau dan kelola jadwal tugas dari seluruh anggota tim sales Anda.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- Table Toolbar -->
+        <div class="table-toolbar">
+          <div class="filters">
+            <select class="filter-select">
+              <option>Semua Sales</option>
+              <option>Rizky Dwi</option>
+              <option>Andi Kurniawan</option>
+              <option>Siti Nurhaliza</option>
+            </select>
+            <select class="filter-select">
+              <option>Status Bebas</option>
+              <option selected>Terlambat / Menunggu</option>
+              <option>Selesai</option>
+            </select>
+            <select class="filter-select" style="width:130px;min-width:130px">
+              <option>Prioritas</option>
+              <option>Tinggi</option>
+              <option>Sedang</option>
+              <option>Rendah</option>
+            </select>
+            <input type="date" class="filter-select" style="width:135px;min-width:135px"/>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="showToast('info', 'Eskpor Data', 'Menyiapkan unduhan data To-Do tim .xlsx...')">
+            Eskpor .xlsx
+          </button>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px"><input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes(this)"/></th>
+                <th>Tugas & Prospek</th>
+                <th>Sales Bertugas</th>
+                <th>Batas Waktu</th>
+                <th>Prioritas</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="overdue-row">
+                <td><input type="checkbox" class="row-check" data-sales="Rizky Dwi" /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Demo presentasi produk</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">PT Maju Abadi</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#3B5BDB">RD</div>
+                    <div>
+                      <div style="font-weight:600;font-size:12px">Rizky Dwi</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">5 Apr 2026</td>
+                <td><span class="pri-high">Tinggi</span></td>
+                <td>
+                  <div class="status-overdue">⚠ Terlambat 3 hari</div>
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:normal;margin-top:2px">Diingatkan: blm pernah</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" onclick="singleRemind(this, 'Rizky Dwi', 'Demo presentasi produk')" style="color:#D97706;border-color:#FDE68A;background:#FFFBEB">Ingatkan</button>
+                </td>
+              </tr>
+              <tr class="overdue-row">
+                <td><input type="checkbox" class="row-check" data-sales="Rizky Dwi" /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Kirim proposal resmi</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">CV Karya Mandiri</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#3B5BDB">RD</div>
+                    <div><div style="font-weight:600;font-size:12px">Rizky Dwi</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">6 Apr 2026</td>
+                <td><span class="pri-high">Tinggi</span></td>
+                <td>
+                  <div class="status-overdue">⚠ Terlambat 2 hari</div>
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:normal;margin-top:2px">Diingatkan: 7 Apr</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" onclick="singleRemind(this, 'Rizky Dwi', 'Kirim proposal resmi')" style="color:#D97706;border-color:#FDE68A;background:#FFFBEB">Ingatkan</button>
+                </td>
+              </tr>
+              <tr class="overdue-row">
+                <td><input type="checkbox" class="row-check" data-sales="Andi Kurniawan" /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Tindak lanjut setelah pertemuan</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">RS Bhayangkara</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#0E9F6E">AK</div>
+                    <div><div style="font-weight:600;font-size:12px">Andi Kurniawan</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">7 Apr 2026</td>
+                <td><span class="pri-high">Tinggi</span></td>
+                <td>
+                  <div class="status-overdue">⚠ Terlambat 1 hari</div>
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:normal;margin-top:2px">Diingatkan: blm pernah</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" onclick="singleRemind(this, 'Andi Kurniawan', 'Tindak lanjut pertemuan')" style="color:#D97706;border-color:#FDE68A;background:#FFFBEB">Ingatkan</button>
+                </td>
+              </tr>
+              <tr class="overdue-row">
+                <td><input type="checkbox" class="row-check" data-sales="Rizky Dwi" /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Update status prospek</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Hendra Gunawan</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#3B5BDB">RD</div>
+                    <div><div style="font-weight:600;font-size:12px">Rizky Dwi</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">7 Apr 2026</td>
+                <td><span class="pri-med">Sedang</span></td>
+                <td>
+                  <div class="status-overdue">⚠ Terlambat 1 hari</div>
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:normal;margin-top:2px">Diingatkan: blm pernah</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" onclick="singleRemind(this, 'Rizky Dwi', 'Update status prospek')" style="color:#D97706;border-color:#FDE68A;background:#FFFBEB">Ingatkan</button>
+                </td>
+              </tr>
+              <tr class="overdue-row">
+                <td><input type="checkbox" class="row-check" data-sales="Andi Kurniawan" /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Rekap laporan kunjungan</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Tugas Internal</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#0E9F6E">AK</div>
+                    <div><div style="font-weight:600;font-size:12px">Andi Kurniawan</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">7 Apr 2026</td>
+                <td><span class="pri-low">Rendah</span></td>
+                <td>
+                  <div class="status-overdue">⚠ Terlambat 1 hari</div>
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:normal;margin-top:2px">Diingatkan: blm pernah</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" onclick="singleRemind(this, 'Andi Kurniawan', 'Rekap laporan')" style="color:#D97706;border-color:#FDE68A;background:#FFFBEB">Ingatkan</button>
+                </td>
+              </tr>
+              <!-- Pending rows -->
+              <tr>
+                <td><input type="checkbox" disabled /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Tindak lanjut penawaran harga</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Sari Dewi</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#3B5BDB">RD</div>
+                    <div><div style="font-weight:600;font-size:12px">Rizky Dwi</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">9 Apr 2026</td>
+                <td><span class="pri-med">Sedang</span></td>
+                <td>
+                  <div class="status-pending">⏳ Menunggu</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" style="color:var(--text-muted);cursor:not-allowed">Ingatkan</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" disabled /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Kirim spesifikasi teknis</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">RS Bhayangkara</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#0E9F6E">AK</div>
+                    <div><div style="font-weight:600;font-size:12px">Andi Kurniawan</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">10 Apr 2026</td>
+                <td><span class="pri-high">Tinggi</span></td>
+                <td>
+                  <div class="status-pending">⏳ Menunggu</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" style="color:var(--text-muted);cursor:not-allowed">Ingatkan</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" disabled /></td>
+                <td>
+                  <div style="font-weight:700;color:var(--text-primary);font-size:13px">Kirim penawaran resmi</div>
+                  <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Klinik Harapan Bunda</div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="sales-avatar-sm" style="background:#7C3AED">SN</div>
+                    <div><div style="font-weight:600;font-size:12px">Siti Nurhaliza</div></div>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-secondary)">12 Apr 2026</td>
+                <td><span class="pri-high">Tinggi</span></td>
+                <td>
+                  <div class="status-pending">⏳ Menunggu</div>
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-xs" style="color:var(--text-muted);cursor:not-allowed">Ingatkan</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:12px;color:var(--text-secondary)">Menampilkan 8 tugas prioritas</div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-outline btn-sm" style="padding:5px 10px" disabled>←</button>
+            <button class="btn btn-primary btn-sm" style="padding:5px 10px">1</button>
+            <button class="btn btn-outline btn-sm" style="padding:5px 10px">2</button>
+            <button class="btn btn-outline btn-sm" style="padding:5px 10px">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: Bulk Reminder -->
+  <div class="modal-overlay" id="bulkModal" onclick="if(event.target===this)closeBulkModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">📢 Kirim Pengingat</div>
+        <button class="modal-close-btn" onclick="closeBulkModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#92400E;font-weight:500">
+          Pesat pengingat ini akan dikirim melalui notifikasi sistem kepada sales secara instan.
+        </div>
+        
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:6px">Ringkasan Penerima:</div>
+          <div style="font-size:13px;color:var(--text-secondary)" id="bulkReceivers">Rizky Dwi (3 tugas), Andi Kurniawan (2 tugas)</div>
+        </div>
+
+        <div>
+           <label class="form-label">Catatan Tambahan (Opsional)</label>
+           <textarea class="form-input" rows="4" placeholder="cth. Mohon selesaikan tugas-tugas ini sebelum akhir hari." style="resize:none"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeBulkModal()">Batal</button>
+        <button class="btn btn-primary" onclick="confirmBulkRemind()">Kirim Pengingat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    // Modal logic
+    function openBulkModal() {
+      let selected = [];
+      document.querySelectorAll('.row-check:checked').forEach(cb => {
+        selected.push(cb.getAttribute('data-sales'));
+      });
+      if(selected.length === 0) {
+        document.getElementById('bulkReceivers').textContent = "Semua sales yang memiliki tugas terlambat (Rizky Dwi, Andi Kurniawan)";
+      } else {
+        let counts = {};
+        selected.forEach(s => counts[s] = (counts[s]||0)+1);
+        let txt = [];
+        for(let s in counts) txt.push(`${s} (${counts[s]} tugas)`);
+        document.getElementById('bulkReceivers').textContent = txt.join(', ');
+      }
+      
+      document.getElementById('bulkModal').classList.add('show'); 
+      document.body.style.overflow = 'hidden'; 
+    }
+    function closeBulkModal() { 
+      document.getElementById('bulkModal').classList.remove('show'); 
+      document.body.style.overflow = ''; 
+    }
+    function confirmBulkRemind() {
+      closeBulkModal();
+      showToast('success', 'Pengingat Terkirim', 'Notifikasi berhasil dikirimkan kepada tim.');
+      
+      // Update UI state
+      document.querySelectorAll('.row-check:checked').forEach(cb => {
+        let tr = cb.closest('tr');
+        tr.style.opacity = '0.5';
+        cb.checked = false;
+        let btn = tr.querySelector('button');
+        if(btn) { btn.textContent = 'Terkirim'; btn.disabled = true; btn.style.cursor = 'not-allowed'; }
+      });
+      document.getElementById('selectAll').checked = false;
+    }
+
+    function singleRemind(btn, salesName, taskName) {
+      showToast('success', 'Pengingat Terkirim', `Notifikasi berhasil dikirim ke ${salesName} untuk tugas "${taskName}".`);
+      btn.textContent = "Terkirim";
+      btn.style.background = "#F1F5F9";
+      btn.style.color = "var(--text-muted)";
+      btn.style.borderColor = "var(--border)";
+      btn.disabled = true;
+      btn.style.cursor = "not-allowed";
+      btn.closest('tr').style.opacity = '0.5';
+    }
+
+    function toggleAllCheckboxes(source) {
+      let checkboxes = document.querySelectorAll('.row-check');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+        checkboxes[i].checked = source.checked;
+      }
+    }
+
+    // Toast Notification logic
+    let tc = 0;
+    function showToast(type, title, msg) {
+      if (tc >= 3) { const f = document.getElementById('toastContainer').firstChild; if (f) f.remove(); }
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+      const id = 't-' + Date.now();
+      const el = document.createElement('div');
+      el.className = 'toast'; el.id = id;
+      el.innerHTML = `<span class="toast-icon">${icons[type]}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="document.getElementById('${id}').remove()">×</span>`;
+      document.getElementById('toastContainer').appendChild(el);
+      tc++;
+      setTimeout(() => { if (document.getElementById(id)) { document.getElementById(id).remove(); tc = Math.max(0, tc - 1); } }, 4000);
+    }
+  </script>
+</body>
+</html>

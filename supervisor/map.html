@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Peta Prospek</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    :root {
+      --primary: #3B5BDB; --primary-light: #EEF2FF; --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A; --sidebar-text: #94A3B8;
+      --success: #0E9F6E; --warning: #E3A008; --danger: #F05252;
+      --surface: #F8FAFC; --card: #FFFFFF; --border: #E2E8F0;
+      --text-primary: #0F172A; --text-secondary: #64748B; --text-muted: #94A3B8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--surface); color: var(--text-primary); overflow-x: hidden; height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; transition: width .3s cubic-bezier(.4, 0, .2, 1); border-right: 1px solid rgba(255, 255, 255, .05); }
+    .sidebar.collapsed { width: 68px; }
+    .sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, .06); min-height: 64px; }
+    .logo-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; }
+    .logo-text { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.5px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .logo-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+    .sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub { opacity: 0; width: 0; }
+    .sidebar-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(148, 163, 184, .4); padding: 16px 20px 6px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .sidebar.collapsed .sidebar-section-label { opacity: 0; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; overflow-x: hidden; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .1); border-radius: 10px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--sidebar-text); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; margin-bottom: 2px; text-decoration: none; position: relative; }
+    .nav-item:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(14, 159, 110, .25), rgba(59, 91, 219, .2)); color: #fff; box-shadow: inset 0 0 0 1px rgba(14, 159, 110, .35); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #0E9F6E; border-radius: 0 4px 4px 0; }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: .8; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-label { transition: opacity .2s; }
+    .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+    .nav-badge { margin-left: auto; background: #F05252; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; flex-shrink: 0; transition: opacity .2s; }
+    .nav-badge.green { background: #0E9F6E; }
+    .sidebar.collapsed .nav-badge { opacity: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255, 255, 255, .06); }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; overflow: hidden; }
+    .user-card:hover { background: rgba(255, 255, 255, .06); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; }
+    .user-role-label { font-size: 11px; color: var(--sidebar-text); white-space: nowrap; }
+    .sidebar.collapsed .user-info { opacity: 0; width: 0; }
+
+    /* ── TOPBAR ── */
+    .topbar { position: fixed; left: 260px; top: 0; right: 0; height: 64px; background: rgba(248, 250, 252, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 90; transition: left .3s cubic-bezier(.4, 0, .2, 1); }
+    .topbar.expanded { left: 68px; }
+    .toggle-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+    .toggle-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .breadcrumb span { font-size: 13px; color: var(--text-secondary); }
+    .breadcrumb .current { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .search-bar { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; height: 38px; width: 260px; transition: all .2s; }
+    .search-bar:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 91, 219, .1); }
+    .search-bar input { border: none; outline: none; background: transparent; font-size: 13px; font-family: inherit; color: var(--text-primary); width: 100%; }
+    .search-bar input::placeholder { color: var(--text-muted); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; position: relative; }
+    .icon-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .notif-dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; background: #F05252; border-radius: 50%; border: 2px solid #fff; }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; border: 1px solid transparent; }
+    .topbar-user:hover { background: #fff; border-color: var(--border); }
+    .topbar-avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .topbar-uname { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-urole { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── MAIN (Full Height Map) ── */
+    .main { margin-left: 260px; padding-top: 64px; height: 100vh; transition: margin-left .3s cubic-bezier(.4, 0, .2, 1); display: flex; flex-direction: column; overflow: hidden; }
+    .main.expanded { margin-left: 68px; }
+    
+    .map-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; z-index: 10; font-family: 'Plus Jakarta Sans', sans-serif; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,.03); }
+    .map-filters { display: flex; gap: 10px; align-items: center; }
+    .filter-select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-family: inherit; outline: none; appearance: none; background: #fff; cursor: pointer; min-width: 140px; box-shadow: 0 1px 2px rgba(0,0,0,.02); }
+    .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 91, 219, .1); }
+    
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; border: none; text-decoration: none; }
+    .btn-outline { background: #fff; color: var(--text-primary); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,.02); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+
+    #map-container { flex: 1; width: 100%; position: relative; z-index: 1; }
+    
+    /* Custom Map Markers */
+    .custom-map-marker { display: flex; flex-direction: column; align-items: center; transform: translateY(-50%); }
+    .custom-map-marker-pin { width: 32px; height: 32px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: -2px 2px 6px rgba(0,0,0,.2); border: 2px solid #fff; position: relative; }
+    .custom-map-marker-pin::after { content: ''; position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .custom-map-marker-label { margin-top: 4px; background: #fff; color: var(--text-primary); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,.15); white-space: nowrap; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; gap: 4px; }
+    
+    /* Specific Colors */
+    .marker-rd .custom-map-marker-pin { background: #3B5BDB; }
+    .marker-ak .custom-map-marker-pin { background: #0E9F6E; }
+    .marker-sn .custom-map-marker-pin { background: #7C3AED; }
+
+    .marker-dot-rd { width: 8px; height: 8px; background: #3B5BDB; border-radius: 50%; display: inline-block; }
+    .marker-dot-ak { width: 8px; height: 8px; background: #0E9F6E; border-radius: 50%; display: inline-block; }
+    .marker-dot-sn { width: 8px; height: 8px; background: #7C3AED; border-radius: 50%; display: inline-block; }
+
+    /* Map Popup Styling */
+    .leaflet-popup-content-wrapper { border-radius: 12px; font-family: 'Plus Jakarta Sans', sans-serif; padding: 0; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,.15); }
+    .leaflet-popup-content { margin: 0; width: 260px !important; }
+    .leaflet-popup-close-button { color: #fff !important; top: 8px !important; right: 8px !important; }
+    
+    .popup-header { color: #fff; padding: 14px 16px 12px; }
+    .bg-rd { background: linear-gradient(135deg, #3B5BDB, #2F4AC7); }
+    .bg-ak { background: linear-gradient(135deg, #0E9F6E, #057A55); }
+    .bg-sn { background: linear-gradient(135deg, #7C3AED, #6D28D9); }
+
+    .popup-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .popup-sub { font-size: 11px; opacity: 0.9; }
+    
+    .popup-body { padding: 14px 16px; background: #fff; }
+    .popup-meta { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 12px; }
+    .popup-meta-item { display: flex; flex-direction: column; }
+    .popup-meta-label { color: var(--text-secondary); font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+    .popup-meta-val { font-weight: 700; color: var(--text-primary); }
+    
+    .popup-footer { padding: 12px 16px; background: #F8FAFC; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .popup-link { font-size: 12px; font-weight: 600; color: var(--primary); text-decoration: none; cursor: pointer; }
+    .popup-link:hover { text-decoration: underline; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Supervisor</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="team.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Manajemen Sales</span>
+      </a>
+      <a href="todo-monitor.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="nav-label">Monitor To-Do</span>
+        <span class="nav-badge">5</span>
+      </a>
+      <a href="schedule.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">Jadwal Tim</span>
+      </a>
+      <a href="map.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Peta Prospek</span>
+      </a>
+      <a href="reports.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">Laporan</span>
+      </a>
+      <a href="announcements.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        <span class="nav-label">Pengumuman</span>
+        <span class="nav-badge green">2</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Akun</div>
+      <a href="profile.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="nav-label">Profil Saya</span>
+      </a>
+      <a href="../sales/help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">DR</div>
+        <div class="user-info">
+          <div class="user-name">Dian Rahayu</div>
+          <div class="user-role-label">Supervisor · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Dashboard</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Peta Prospek</span>
+    </div>
+    <div class="search-bar">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8"><circle cx="11" cy="11" r="8" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="Cari prospek (nama/alamat) …"/>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="window.location.href='notifications.html'">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">DR</div>
+        <div>
+          <div class="topbar-uname">Dian Rahayu</div>
+          <div class="topbar-urole">Supervisor</div>
+        </div>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    
+    <div class="map-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <h1 style="font-size:18px;font-weight:700;letter-spacing:-.2px;color:var(--text-primary)">Peta Distribusi Prospek</h1>
+        <div style="font-size:12px;color:var(--text-secondary);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border)">
+          78 Total Pin Prospek Aktif
+        </div>
+      </div>
+      <div class="map-filters">
+        <select class="filter-select">
+          <option>Semua Wilayah</option>
+          <option>Surabaya Barat</option>
+          <option>Surabaya Timur</option>
+          <option>Surabaya Selatan</option>
+        </select>
+        <select class="filter-select">
+          <option>Semua Sales</option>
+          <option>Rizky Dwi (Selatan)</option>
+          <option>Andi Kurniawan (Timur)</option>
+          <option>Siti Nurhaliza (Barat)</option>
+        </select>
+        <select class="filter-select" style="width:130px;min-width:130px">
+          <option>Semua Status</option>
+          <option>🔥 Hot</option>
+          <option>Warm</option>
+          <option>Cold</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="map.setView([-7.250445, 112.768845], 12)">Tengah Wilayah (SBY)</button>
+      </div>
+    </div>
+
+    <!-- Container untuk Peta -->
+    <div id="map-container"></div>
+    
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <script>
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+      // Fix map rendering bug on resize
+      setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+    }
+
+    // Inisialisasi Peta - Fokus ke Surabaya
+    var map = L.map('map-container').setView([-7.250445, 112.758845], 12);
+
+    // Gunakan map tiles dari CartoDB (clean & professional)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    // Fungsi untuk membuat custom marker HTML icon
+    function createCustomIcon(salesCode, labelText) {
+      return L.divIcon({
+        className: 'custom-map-marker marker-' + salesCode,
+        html: `
+          <div class="custom-map-marker-pin"></div>
+          <div class="custom-map-marker-label">
+            <span class="marker-dot-${salesCode}"></span> ${labelText}
+          </div>
+        `,
+        iconSize: [80, 50],
+        iconAnchor: [40, 48],
+        popupAnchor: [0, -40]
+      });
+    }
+
+    // Data Mock untuk Marker
+    var prospectData = [
+      // Rizky Dwi (Selatan & sekitarnya)
+      { id: 1, lat: -7.3000, lng: 112.7300, name: "PT Maju Abadi", type: "Perusahaan", sales: "Rizky Dwi", scode: "rd", status: "Hot", bgClass: "bg-rd", val: "Rp 85.Jt", last: "Hari ini 09:15" },
+      { id: 2, lat: -7.3120, lng: 112.7200, name: "CV Karya Mandiri", type: "Perusahaan", sales: "Rizky Dwi", scode: "rd", status: "Hot", bgClass: "bg-rd", val: "Rp 120.Jt", last: "7 Apr" },
+      
+      // Andi Kurniawan (Timur)
+      { id: 3, lat: -7.2650, lng: 112.7800, name: "RS Bhayangkara", type: "Perusahaan", sales: "Andi Kurniawan", scode: "ak", status: "Hot", bgClass: "bg-ak", val: "Rp 95 Jt", last: "Hari ini 10:30" },
+      { id: 4, lat: -7.2750, lng: 112.7950, name: "Apotek Maju Jaya", type: "Perusahaan", sales: "Andi Kurniawan", scode: "ak", status: "Warm", bgClass: "bg-ak", val: "Rp 42 Jt", last: "5 Apr" },
+      { id: 5, lat: -7.2800, lng: 112.7900, name: "dr. Budi Hartono", type: "Individu", sales: "Andi Kurniawan", scode: "ak", status: "Warm", bgClass: "bg-ak", val: "Rp 28 Jt", last: "3 Apr" },
+
+      // Siti Nurhaliza (Barat)
+      { id: 6, lat: -7.2700, lng: 112.6800, name: "RS Mitra Keluarga", type: "Perusahaan", sales: "Siti Nurhaliza", scode: "sn", status: "Hot", bgClass: "bg-sn", val: "Rp 120 Jt", last: "5 Apr" },
+      { id: 7, lat: -7.2550, lng: 112.6700, name: "Apotek Sehat Mandiri", type: "Perusahaan", sales: "Siti Nurhaliza", scode: "sn", status: "Terkonversi", bgClass: "bg-sn", val: "Rp 200 Jt", last: "Hari ini 09:00" },
+      { id: 8, lat: -7.2400, lng: 112.6900, name: "Klinik Harapan Bunda", type: "Perusahaan", sales: "Siti Nurhaliza", scode: "sn", status: "Hot", bgClass: "bg-sn", val: "Rp 75 Jt", last: "7 Apr" }
+    ];
+
+    // Tambahkan marker ke peta
+    prospectData.forEach(function(item) {
+      // Styling untuk popup
+      var popupContent = `
+        <div class="popup-header ${item.bgClass}">
+          <div class="popup-title">${item.name}</div>
+          <div class="popup-sub">${item.type} · ${item.status}</div>
+        </div>
+        <div class="popup-body">
+          <div class="popup-meta">
+            <div class="popup-meta-item">
+              <span class="popup-meta-label">PIC Sales</span>
+              <span class="popup-meta-val">${item.sales}</span>
+            </div>
+            <div class="popup-meta-item" style="text-align:right">
+              <span class="popup-meta-label">Est. Nilai</span>
+              <span class="popup-meta-val" style="color:var(--primary);font-family:'JetBrains Mono', monospace">${item.val}</span>
+            </div>
+          </div>
+          <div class="popup-meta" style="margin-bottom:0">
+            <div class="popup-meta-item">
+              <span class="popup-meta-label">Akt. Terakhir</span>
+              <span class="popup-meta-val" style="font-size:12px;font-weight:600">${item.last}</span>
+            </div>
+          </div>
+        </div>
+        <div class="popup-footer">
+          <a class="popup-link" href="#" onclick="alert('Membuka detail prospek (Read-only)')">Buka Profil Prospek &rarr;</a>
+        </div>
+      `;
+
+      var marker = L.marker([item.lat, item.lng], {
+        icon: createCustomIcon(item.scode, item.name)
+      }).addTo(map);
+
+      marker.bindPopup(popupContent, {
+        closeButton: true,
+        minWidth: 260
+      });
+    });
+
+  </script>
+</body>
+</html>

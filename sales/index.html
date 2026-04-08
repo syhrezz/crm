@@ -1,0 +1,2537 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NexaCRM — Dashboard Sales</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3B5BDB;
+            --primary-light: #EEF2FF;
+            --primary-dark: #2F4AC7;
+            --sidebar-bg: #0F172A;
+            --sidebar-text: #94A3B8;
+            --success: #0E9F6E;
+            --warning: #E3A008;
+            --danger: #F05252;
+            --surface: #F8FAFC;
+            --card: #FFFFFF;
+            --border: #E2E8F0;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 260px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: width .3s cubic-bezier(.4, 0, .2, 1);
+            border-right: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .sidebar.collapsed {
+            width: 68px;
+        }
+
+        .sidebar-logo {
+            padding: 20px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            min-height: 64px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .logo-text {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity .2s;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--sidebar-text);
+            font-weight: 500;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+        }
+
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .logo-sub {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(148, 163, 184, .4);
+            padding: 16px 20px 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity .2s;
+        }
+
+        .sidebar.collapsed .sidebar-section-label {
+            opacity: 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 12px;
+            overflow-x: hidden;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .1);
+            border-radius: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            color: var(--sidebar-text);
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            margin-bottom: 2px;
+            position: relative;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .06);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(59, 91, 219, .3), rgba(124, 58, 237, .2));
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(59, 91, 219, .4);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: var(--primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            opacity: .8;
+        }
+
+        .nav-item.active .nav-icon {
+            opacity: 1;
+        }
+
+        .nav-label {
+            transition: opacity .2s;
+        }
+
+        .sidebar.collapsed .nav-label {
+            opacity: 0;
+            width: 0;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: #F05252;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            transition: opacity .2s;
+        }
+
+        .sidebar.collapsed .nav-badge {
+            opacity: 0;
+        }
+
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            overflow: hidden;
+        }
+
+        .user-card:hover {
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .user-info {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: var(--sidebar-text);
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .user-info {
+            opacity: 0;
+            width: 0;
+        }
+
+        .topbar {
+            position: fixed;
+            left: 260px;
+            top: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(248, 250, 252, .92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 16px;
+            z-index: 90;
+            transition: left .3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .topbar.expanded {
+            left: 68px;
+        }
+
+        .toggle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .breadcrumb span {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb .current {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0 14px;
+            height: 38px;
+            width: 260px;
+            transition: all .2s;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-primary);
+            width: 100%;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 8px;
+            height: 8px;
+            background: #F05252;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            border: 1px solid transparent;
+        }
+
+        .topbar-user:hover {
+            background: #fff;
+            border-color: var(--border);
+        }
+
+        .topbar-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .topbar-uname {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .topbar-urole {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .main {
+            margin-left: 260px;
+            padding-top: 64px;
+            min-height: 100vh;
+            transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .main.expanded {
+            margin-left: 68px;
+        }
+
+        .content {
+            padding: 28px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -.5px;
+        }
+
+        .page-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .2s;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 1px 3px rgba(59, 91, 219, .3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(59, 91, 219, .35);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 12px;
+            border-radius: 8px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .card-shadow {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04), 0 4px 16px rgba(0, 0, 0, .04);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all .25s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+            border-color: rgba(59, 91, 219, .2);
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: -20px;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            opacity: .06;
+        }
+
+        .kpi-card.blue::after {
+            background: #3B5BDB;
+        }
+
+        .kpi-card.green::after {
+            background: #0E9F6E;
+        }
+
+        .kpi-card.amber::after {
+            background: #E3A008;
+        }
+
+        .kpi-card.red::after {
+            background: #F05252;
+        }
+
+        .kpi-card.purple::after {
+            background: #7C3AED;
+        }
+
+        .kpi-card.teal::after {
+            background: #0694A2;
+        }
+
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            font-size: 18px;
+        }
+
+        .kpi-icon.blue {
+            background: #EEF2FF;
+        }
+
+        .kpi-icon.green {
+            background: #F0FDF4;
+        }
+
+        .kpi-icon.amber {
+            background: #FFFBEB;
+        }
+
+        .kpi-icon.red {
+            background: #FEF2F2;
+        }
+
+        .kpi-icon.purple {
+            background: #F5F3FF;
+        }
+
+        .kpi-icon.teal {
+            background: #ECFEFF;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .kpi-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 8px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .kpi-change.up {
+            background: #F0FDF4;
+            color: #0E9F6E;
+        }
+
+        .kpi-change.down {
+            background: #FEF2F2;
+            color: #F05252;
+        }
+
+        .target-card {
+            background: linear-gradient(135deg, #1E3A8A, #3B5BDB, #7C3AED);
+            border-radius: 14px;
+            padding: 22px 24px;
+            color: #fff;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(59, 91, 219, .3);
+        }
+
+        .target-card::before {
+            content: '';
+            position: absolute;
+            right: -40px;
+            top: -40px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .target-card::after {
+            content: '';
+            position: absolute;
+            right: 60px;
+            bottom: -60px;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .04);
+        }
+
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, .2);
+            border-radius: 100px;
+            height: 8px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: linear-gradient(90deg, #93C5FD, #fff);
+            transition: width 1s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .chart-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 1px;
+        }
+
+        .table-card {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .table-header {
+            padding: 18px 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 11px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--text-secondary);
+            background: #F8FAFC;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #F1F5F9;
+            transition: background .15s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #FAFBFF;
+        }
+
+        tbody td {
+            padding: 13px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .badge-hot {
+            background: #FEF2F2;
+            color: #DC2626;
+        }
+
+        .badge-hot::before {
+            background: #DC2626;
+        }
+
+        .badge-warm {
+            background: #FFFBEB;
+            color: #D97706;
+        }
+
+        .badge-warm::before {
+            background: #D97706;
+        }
+
+        .badge-cold {
+            background: #EFF6FF;
+            color: #2563EB;
+        }
+
+        .badge-cold::before {
+            background: #2563EB;
+        }
+
+        .badge-converted {
+            background: #F0FDF4;
+            color: #16A34A;
+        }
+
+        .badge-converted::before {
+            background: #16A34A;
+        }
+
+        .badge-dead {
+            background: #F8FAFC;
+            color: #64748B;
+        }
+
+        .badge-dead::before {
+            background: #94A3B8;
+        }
+
+        .badge-individual {
+            background: #F5F3FF;
+            color: #7C3AED;
+            border: 1px solid #EDE9FE;
+        }
+
+        .badge-corporate {
+            background: #EFF6FF;
+            color: #1D4ED8;
+            border: 1px solid #DBEAFE;
+        }
+
+        .badge-individual::before,
+        .badge-corporate::before {
+            display: none;
+        }
+
+        .activity-feed {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+        }
+
+        .feed-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid #F1F5F9;
+            align-items: flex-start;
+            transition: background .15s;
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-item:hover {
+            background: #FAFBFF;
+        }
+
+        .feed-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .feed-dot.kunjungan {
+            background: #F0FDF4;
+        }
+
+        .feed-dot.whatsapp {
+            background: #F0FDF4;
+        }
+
+        .feed-dot.telepon {
+            background: #EFF6FF;
+        }
+
+        .feed-dot.pertemuan {
+            background: #F5F3FF;
+        }
+
+        .feed-body {
+            flex: 1;
+        }
+
+        .feed-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feed-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .feed-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .gps-verified {
+            background: #F0FDF4;
+            color: #16A34A;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid #BBF7D0;
+        }
+
+        .gps-range {
+            background: #FFFBEB;
+            color: #D97706;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid #FDE68A;
+        }
+
+        .gps-fail {
+            background: #FEF2F2;
+            color: #DC2626;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid #FECACA;
+        }
+
+        .alert-banner {
+            background: linear-gradient(135deg, #FEF3C7, #FFFBEB);
+            border: 1px solid #FCD34D;
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .alert-text {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+            color: #92400E;
+        }
+
+        .alert-text strong {
+            font-weight: 700;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-check {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all .2s;
+        }
+
+        .todo-check:hover {
+            border-color: var(--primary);
+        }
+
+        .todo-body {
+            flex: 1;
+        }
+
+        .todo-title-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .todo-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .priority-high {
+            background: #FEF2F2;
+            color: #DC2626;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 20px;
+        }
+
+        .priority-med {
+            background: #FFFBEB;
+            color: #D97706;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 20px;
+        }
+
+        .priority-low {
+            background: #F0FDF4;
+            color: #16A34A;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 20px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            min-width: 300px;
+            max-width: 380px;
+            animation: slideIn .3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .toast-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .toast-msg {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .toast-close {
+            margin-left: auto;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .toast-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .4);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity .2s;
+            pointer-events: none;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 18px;
+            width: 520px;
+            max-width: 94vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .18);
+            transform: scale(.96) translateY(12px);
+            transition: all .25s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 22px 24px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -.4px;
+        }
+
+        .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-secondary);
+            transition: all .2s;
+        }
+
+        .modal-close-btn:hover {
+            background: #FEF2F2;
+            border-color: #FECACA;
+            color: #DC2626;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+        }
+
+        .modal-footer {
+            padding: 0 24px 22px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .form-label span {
+            color: #F05252;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-primary);
+            transition: all .2s;
+            outline: none;
+            background: #fff;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .role-switcher {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 300;
+            background: var(--sidebar-bg);
+            color: #fff;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, .1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all .2s;
+        }
+
+        .role-switcher:hover {
+            background: #1E293B;
+        }
+
+        .role-switcher-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #0E9F6E;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(14, 159, 110, .4)
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(14, 159, 110, 0)
+            }
+        }
+
+        .fade-up {
+            opacity: 0;
+            transform: translateY(16px);
+            animation: fadeUp .4s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .d1 {
+            animation-delay: .05s
+        }
+
+        .d2 {
+            animation-delay: .1s
+        }
+
+        .d3 {
+            animation-delay: .15s
+        }
+
+        .d4 {
+            animation-delay: .2s
+        }
+
+        .d5 {
+            animation-delay: .25s
+        }
+
+        [data-tip] {
+            position: relative;
+        }
+
+        [data-tip]::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0F172A;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .2s;
+            z-index: 999;
+        }
+
+        [data-tip]:hover::after {
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">N</div>
+            <div>
+                <div class="logo-text">NexaCRM</div>
+                <div class="logo-sub">Edisi Sales</div>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidebar-section-label">Menu Utama</div>
+            <a href="index.html" class="nav-item active">
+                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span class="nav-label">Beranda</span>
+            </a>
+            <a href="prospect.html" class="nav-item">
+                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="nav-label">Prospek Saya</span>
+                <span class="nav-badge">24</span>
+            </a>
+            <a href="activities.html" class="nav-item">
+                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="nav-label">Aktivitas</span>
+            </a>
+            <a href="products.html" class="nav-item">
+                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <span class="nav-label">Produk</span>
+            </a>
+            <div class="sidebar-section-label" style="margin-top:8px">Lainnya</div>
+            <a href="help.html" class="nav-item">
+                <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="nav-label">Bantuan</span>
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar">RD</div>
+                <div class="user-info">
+                    <div class="user-name">Rizky Dwi</div>
+                    <div class="user-role">Sales · Surabaya</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- TOPBAR -->
+    <header class="topbar" id="topbar">
+        <button class="toggle-btn" onclick="toggleSidebar()" data-tip="Buka/tutup sidebar">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <div class="breadcrumb">
+            <span>Beranda</span>
+            <span style="color:var(--text-muted);font-size:12px">›</span>
+            <span class="current">Dashboard</span>
+        </div>
+        <div class="search-bar">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+                <circle cx="11" cy="11" r="8" stroke-width="2" />
+                <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <input type="text" placeholder="Cari prospek, produk, aktivitas…" />
+            <span style="font-size:11px;color:#CBD5E1;font-family:'JetBrains Mono',monospace">⌘K</span>
+        </div>
+        <div class="topbar-actions">
+            <button class="icon-btn" data-tip="Notifikasi"
+                onclick="showToast('info','Notifikasi Baru','Anda memiliki 3 notifikasi yang belum dibaca')">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <div class="notif-dot"></div>
+            </button>
+            <button class="icon-btn" data-tip="Tambah prospek" onclick="openModal()">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+            <div class="topbar-user">
+                <div class="topbar-avatar">RD</div>
+                <div>
+                    <div class="topbar-uname">Rizky Dwi</div>
+                    <div class="topbar-urole">Sales Rep</div>
+                </div>
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="main" id="main">
+        <div class="content">
+
+            <!-- Banner Peringatan -->
+            <div class="alert-banner fade-up">
+                <div
+                    style="width:36px;height:36px;border-radius:10px;background:#FCD34D;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="#92400E">
+                        <path fill-rule="evenodd"
+                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="alert-text">Anda memiliki <strong>3 tugas yang sudah melewati batas waktu</strong> dan perlu
+                    segera ditindaklanjuti. Supervisor Anda telah diberitahu.</div>
+                <button class="btn btn-outline btn-sm"
+                    onclick="showToast('warning','To-Do','Membuka daftar tugas terlambat...')">Lihat Tugas</button>
+            </div>
+
+            <!-- Judul Halaman -->
+            <div class="page-header fade-up d1">
+                <div>
+                    <h1 class="page-title">Selamat pagi, Rizky!</h1>
+                    <p class="page-sub">Rabu, 8 April 2026 · Berikut ringkasan aktivitas penjualan Anda bulan ini</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" onclick="showToast('info','Ekspor','Menyiapkan laporan Anda...')">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Ekspor
+                    </button>
+                    <button class="btn btn-primary" onclick="openModal()">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Prospek
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kartu Target Bulanan -->
+            <div class="target-card fade-up d2">
+                <div
+                    style="display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1">
+                    <div>
+                        <div
+                            style="font-size:12px;font-weight:600;opacity:.7;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">
+                            Target Bulanan — April 2026</div>
+                        <div style="font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1">3 <span
+                                style="font-size:16px;font-weight:500;opacity:.7">/ 5 Closing</span></div>
+                        <div style="font-size:13px;opacity:.75;margin-top:6px">Rp 245.000.000 dari target pendapatan Rp
+                            400.000.000</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:38px;font-weight:800;letter-spacing:-2px;line-height:1">60%</div>
+                        <div style="font-size:12px;opacity:.7;margin-top:2px">Tercapai</div>
+                        <div style="font-size:11px;opacity:.6;margin-top:4px">Sisa 23 hari</div>
+                    </div>
+                </div>
+                <div class="progress-bar-bg" style="position:relative;z-index:1">
+                    <div class="progress-bar-fill" style="width:60%"></div>
+                </div>
+                <div style="display:flex;gap:20px;margin-top:14px;position:relative;z-index:1">
+                    <div style="font-size:12px;opacity:.75;display:flex;align-items:center;gap:5px">
+                        <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(255,255,255,.9)">
+                            <path
+                                d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" />
+                        </svg>
+                        2 prospek hot menunggu
+                    </div>
+                    <div style="font-size:12px;opacity:.75;display:flex;align-items:center;gap:5px">
+                        <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(255,255,255,.9)">
+                            <path fill-rule="evenodd"
+                                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        5 tindak lanjut terjadwal
+                    </div>
+                    <div style="font-size:12px;opacity:.75;display:flex;align-items:center;gap:5px">
+                        <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(255,255,255,.9)">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        3 kunjungan minggu ini
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid KPI -->
+            <div class="kpi-grid fade-up d3">
+                <div class="kpi-card blue">
+                    <div class="kpi-icon blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B5BDB" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value">24</div>
+                    <div class="kpi-label">Total Prospek Saya</div>
+                    <span class="kpi-change up">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        4 bulan ini</span>
+                </div>
+                <div class="kpi-card red">
+                    <div class="kpi-icon red">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="#DC2626">
+                            <path
+                                d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value">6</div>
+                    <div class="kpi-label">Prospek Hot</div>
+                    <span class="kpi-change up">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        2 baru</span>
+                </div>
+                <div class="kpi-card amber">
+                    <div class="kpi-icon amber">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="#D97706">
+                            <path fill-rule="evenodd"
+                                d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value">9</div>
+                    <div class="kpi-label">Prospek Warm</div>
+                    <span class="kpi-change down">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#F05252">
+                            <path fill-rule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        1 jadi cold</span>
+                </div>
+                <div class="kpi-card green">
+                    <div class="kpi-icon green">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value">3</div>
+                    <div class="kpi-label">Closing Bulan Ini</div>
+                    <span class="kpi-change up">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        sesuai target</span>
+                </div>
+                <div class="kpi-card teal">
+                    <div class="kpi-icon teal">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="#0694A2">
+                            <path fill-rule="evenodd"
+                                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value">11</div>
+                    <div class="kpi-label">Kunjungan Bulan Ini</div>
+                    <span class="kpi-change up">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        3 vs bulan lalu</span>
+                </div>
+                <div class="kpi-card purple">
+                    <div class="kpi-icon purple">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="#7C3AED">
+                            <path
+                                d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value" style="font-size:18px">245 Jt</div>
+                    <div class="kpi-label">Estimasi Nilai Prospek</div>
+                    <span class="kpi-change up">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        12%</span>
+                </div>
+                <div class="kpi-card blue">
+                    <div class="kpi-icon blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B5BDB" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value">3</div>
+                    <div class="kpi-label">Prospek Terkonversi</div>
+                    <span class="kpi-change up">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#0E9F6E">
+                            <path fill-rule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        1 baru</span>
+                </div>
+                <div class="kpi-card amber">
+                    <div class="kpi-icon amber">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                    <div class="kpi-value" style="color:#DC2626">3</div>
+                    <div class="kpi-label">Tugas Terlambat</div>
+                    <span class="kpi-change down">
+                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#D97706">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        perlu tindakan</span>
+                </div>
+            </div>
+
+            <!-- Grafik Baris 1 -->
+            <div class="charts-grid fade-up d4">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Tren Closing</div>
+                            <div class="chart-sub">6 bulan terakhir</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm">Bulanan ▾</button>
+                    </div>
+                    <canvas id="closingChart" height="180"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Distribusi Status Prospek</div>
+                            <div class="chart-sub">Portofolio saat ini</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:20px">
+                        <canvas id="statusChart" width="160" height="160" style="flex-shrink:0"></canvas>
+                        <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div style="display:flex;align-items:center;gap:7px">
+                                    <div style="width:10px;height:10px;border-radius:3px;background:#DC2626"></div><span
+                                        style="font-size:12px;color:var(--text-secondary)">Hot</span>
+                                </div><span style="font-size:13px;font-weight:700">6</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div style="display:flex;align-items:center;gap:7px">
+                                    <div style="width:10px;height:10px;border-radius:3px;background:#D97706"></div><span
+                                        style="font-size:12px;color:var(--text-secondary)">Warm</span>
+                                </div><span style="font-size:13px;font-weight:700">9</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div style="display:flex;align-items:center;gap:7px">
+                                    <div style="width:10px;height:10px;border-radius:3px;background:#2563EB"></div><span
+                                        style="font-size:12px;color:var(--text-secondary)">Cold</span>
+                                </div><span style="font-size:13px;font-weight:700">5</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div style="display:flex;align-items:center;gap:7px">
+                                    <div style="width:10px;height:10px;border-radius:3px;background:#16A34A"></div><span
+                                        style="font-size:12px;color:var(--text-secondary)">Terkonversi</span>
+                                </div><span style="font-size:13px;font-weight:700">3</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div style="display:flex;align-items:center;gap:7px">
+                                    <div style="width:10px;height:10px;border-radius:3px;background:#94A3B8"></div><span
+                                        style="font-size:12px;color:var(--text-secondary)">Tidak Aktif</span>
+                                </div><span style="font-size:13px;font-weight:700">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafik Baris 2 -->
+            <div class="charts-grid fade-up d5">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Frekuensi Kunjungan</div>
+                            <div class="chart-sub">Bulan ini per minggu</div>
+                        </div>
+                    </div>
+                    <canvas id="visitChart" height="160"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Sumber Prospek</div>
+                            <div class="chart-sub">Distribusi bulan ini</div>
+                        </div>
+                    </div>
+                    <canvas id="sourceChart" height="160"></canvas>
+                </div>
+            </div>
+
+            <!-- TOP SELLING PRODUCTS SECTION -->
+            <div class="fade-up d5" style="margin-bottom:24px">
+                <div class="card card-shadow" style="overflow:hidden">
+                    <div class="table-header" style="background:linear-gradient(135deg,#F8FAFC,#fff)">
+                        <div style="display:flex;align-items:center;gap:12px">
+                            <div
+                                style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#3B5BDB,#7C3AED);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff"
+                                    stroke-width="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="table-title">Produk Terlaris</div>
+                                <div style="font-size:12px;color:var(--text-secondary);margin-top:1px">Berdasarkan unit
+                                    terjual — April 2026</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px">
+
+                            <a href="products.html" class="btn btn-outline btn-sm">Semua Produk →</a>
+                        </div>
+                    </div>
+
+                    <div style="overflow:auto">
+                        <table style="width:100%;border-collapse:collapse">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;padding-left:16px">#</th>
+                                    <th>Produk</th>
+                                    <th>Kategori</th>
+                                    <th>Unit Terjual</th>
+                                    <th>Pendapatan</th>
+                                    <th>Tren</th>
+                                    <th style="padding-right:16px">Porsi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="cursor:pointer"
+                                    onclick="showToast('info','Produk','Membuka detail Paracetamol 500mg Tablet...')">
+                                    <td style="padding-left:16px">
+                                        <div
+                                            style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#D97706">
+                                            1</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;font-size:13px">Paracetamol 500mg Tablet</div>
+                                        <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">SKU:
+                                            OBT-OTC-001</div>
+                                    </td>
+                                    <td><span
+                                            style="background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid #BBF7D0">Obat
+                                            OTC / Bebas</span></td>
+                                    <td>
+                                        <div
+                                            style="font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace">
+                                            1,250</div>
+                                        <div style="font-size:10px;color:var(--text-muted)">unit</div>
+                                    </td>
+                                    <td
+                                        style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary)">
+                                        Rp 5.6 Jt</td>
+                                    <td>
+                                        <span
+                                            style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#16A34A">
+                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="#16A34A">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            +31%</span>
+                                    </td>
+                                    <td style="width:120px;padding-right:16px">
+                                        <div style="background:#F1F5F9;border-radius:100px;height:6px;overflow:hidden">
+                                            <div
+                                                style="width:100%;height:100%;background:linear-gradient(90deg,#3B5BDB,#7C3AED);border-radius:100px">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr style="cursor:pointer"
+                                    onclick="showToast('info','Produk','Membuka detail Amoxicillin 500mg Kapsul...')">
+                                    <td style="padding-left:16px">
+                                        <div
+                                            style="width:28px;height:28px;border-radius:8px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#64748B;border:1px solid var(--border)">
+                                            2</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;font-size:13px">Amoxicillin 500mg Kapsul</div>
+                                        <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">SKU:
+                                            OBT-RX-0001</div>
+                                    </td>
+                                    <td><span
+                                            style="background:#EFF6FF;color:#1D4ED8;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid #DBEAFE">Obat
+                                            Etikal (Rx)</span></td>
+                                    <td>
+                                        <div
+                                            style="font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace">
+                                            350</div>
+                                        <div style="font-size:10px;color:var(--text-muted)">unit</div>
+                                    </td>
+                                    <td
+                                        style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary)">
+                                        Rp 6.4 Jt</td>
+                                    <td>
+                                        <span
+                                            style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#16A34A">
+                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="#16A34A">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            +22%</span>
+                                    </td>
+                                    <td style="width:120px;padding-right:16px">
+                                        <div style="background:#F1F5F9;border-radius:100px;height:6px;overflow:hidden">
+                                            <div
+                                                style="width:79%;height:100%;background:linear-gradient(90deg,#3B5BDB,#7C3AED);border-radius:100px">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr style="cursor:pointer"
+                                    onclick="showToast('info','Produk','Membuka detail Metformin 500mg Tablet...')">
+                                    <td style="padding-left:16px">
+                                        <div
+                                            style="width:28px;height:28px;border-radius:8px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#64748B;border:1px solid var(--border)">
+                                            3</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;font-size:13px">Metformin 500mg Tablet</div>
+                                        <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">SKU:
+                                            OBT-RX-0002</div>
+                                    </td>
+                                    <td><span
+                                            style="background:#EFF6FF;color:#1D4ED8;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid #DBEAFE">Obat
+                                            Etikal (Rx)</span></td>
+                                    <td>
+                                        <div
+                                            style="font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace">
+                                            300</div>
+                                        <div style="font-size:10px;color:var(--text-muted)">unit</div>
+                                    </td>
+                                    <td
+                                        style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary)">
+                                        Rp 2.5 Jt</td>
+                                    <td>
+                                        <span
+                                            style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#F05252">
+                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="#F05252">
+                                                <path fill-rule="evenodd"
+                                                    d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            -4%</span>
+                                    </td>
+                                    <td style="width:120px;padding-right:16px">
+                                        <div style="background:#F1F5F9;border-radius:100px;height:6px;overflow:hidden">
+                                            <div
+                                                style="width:64%;height:100%;background:linear-gradient(90deg,#3B5BDB,#7C3AED);border-radius:100px">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr style="cursor:pointer"
+                                    onclick="showToast('info','Produk','Membuka detail Atorvastatin 20mg Tablet...')">
+                                    <td style="padding-left:16px">
+                                        <div
+                                            style="width:28px;height:28px;border-radius:8px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#64748B;border:1px solid var(--border)">
+                                            4</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;font-size:13px">Atorvastatin 20mg Tablet</div>
+                                        <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">SKU:
+                                            OBT-RX-0006</div>
+                                    </td>
+                                    <td><span
+                                            style="background:#EFF6FF;color:#1D4ED8;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid #DBEAFE">Obat
+                                            Etikal (Rx)</span></td>
+                                    <td>
+                                        <div
+                                            style="font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace">
+                                            200</div>
+                                        <div style="font-size:10px;color:var(--text-muted)">unit</div>
+                                    </td>
+                                    <td
+                                        style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary)">
+                                        Rp 6.4 Jt</td>
+                                    <td>
+                                        <span
+                                            style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#16A34A">
+                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="#16A34A">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            +9%</span>
+                                    </td>
+                                    <td style="width:120px;padding-right:16px">
+                                        <div style="background:#F1F5F9;border-radius:100px;height:6px;overflow:hidden">
+                                            <div
+                                                style="width:50%;height:100%;background:linear-gradient(90deg,#3B5BDB,#7C3AED);border-radius:100px">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr style="cursor:pointer"
+                                    onclick="showToast('info','Produk','Membuka detail Tensimeter Digital Otomatis...')">
+                                    <td style="padding-left:16px">
+                                        <div
+                                            style="width:28px;height:28px;border-radius:8px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#64748B;border:1px solid var(--border)">
+                                            5</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600;font-size:13px">Tensimeter Digital Otomatis</div>
+                                        <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">SKU:
+                                            ALK-0001</div>
+                                    </td>
+                                    <td><span
+                                            style="background:#F5F3FF;color:#7C3AED;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid #EDE9FE">Alat
+                                            Kesehatan</span></td>
+                                    <td>
+                                        <div
+                                            style="font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace">
+                                            80</div>
+                                        <div style="font-size:10px;color:var(--text-muted)">unit</div>
+                                    </td>
+                                    <td
+                                        style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary)">
+                                        Rp 30.8 Jt</td>
+                                    <td>
+                                        <span
+                                            style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;color:#16A34A">
+                                            <svg width="10" height="10" viewBox="0 0 20 20" fill="#16A34A">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            +15%</span>
+                                    </td>
+                                    <td style="width:120px;padding-right:16px">
+                                        <div style="background:#F1F5F9;border-radius:100px;height:6px;overflow:hidden">
+                                            <div
+                                                style="width:36%;height:100%;background:linear-gradient(90deg,#3B5BDB,#7C3AED);border-radius:100px">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabel + Kolom Kanan -->
+            <div class="two-col fade-up d5">
+
+                <!-- Tabel Prospek Terbaru -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <div>
+                            <div class="table-title">Prospek Terbaru</div>
+                            <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">5 prospek terakhir
+                                yang ditambahkan</div>
+                        </div>
+                        <a href="prospect.html" class="btn btn-outline btn-sm">Lihat Semua →</a>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Prospek</th>
+                                <th>Tipe</th>
+                                <th>Status</th>
+                                <th>Est. Nilai</th>
+                                <th>Aktivitas Terakhir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr onclick="showToast('info','Prospek','Membuka detail PT Maju Abadi...')"
+                                style="cursor:pointer">
+                                <td>
+                                    <div style="font-weight:600">PT Maju Abadi</div>
+                                    <div style="font-size:11px;color:var(--text-secondary)">Budi Santoso ·
+                                        0812-3456-7890</div>
+                                </td>
+                                <td><span class="badge badge-corporate">Perusahaan</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">Rp
+                                    85.000.000</td>
+                                <td>
+                                    <div style="font-size:12px">Hari ini, 09:15</div>
+                                    <div class="gps-verified"
+                                        style="display:inline-flex;align-items:center;gap:3px;margin-top:3px">
+                                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#16A34A">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Terverifikasi
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr onclick="showToast('info','Prospek','Membuka detail Sari Dewi...')"
+                                style="cursor:pointer">
+                                <td>
+                                    <div style="font-weight:600">Sari Dewi</div>
+                                    <div style="font-size:11px;color:var(--text-secondary)">Perorangan · 0856-7890-1234
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-individual">Perorangan</span></td>
+                                <td><span class="badge badge-warm">Warm</span></td>
+                                <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">Rp
+                                    32.500.000</td>
+                                <td>
+                                    <div style="font-size:12px">Kemarin</div>
+                                </td>
+                            </tr>
+                            <tr onclick="showToast('info','Prospek','Membuka detail CV Karya Mandiri...')"
+                                style="cursor:pointer">
+                                <td>
+                                    <div style="font-weight:600">CV Karya Mandiri</div>
+                                    <div style="font-size:11px;color:var(--text-secondary)">Andi Wijaya · 0821-5555-6666
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-corporate">Perusahaan</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">Rp
+                                    120.000.000</td>
+                                <td>
+                                    <div style="font-size:12px">2 hari lalu</div>
+                                    <div class="gps-range"
+                                        style="display:inline-flex;align-items:center;gap:3px;margin-top:3px">
+                                        <svg width="10" height="10" viewBox="0 0 20 20" fill="#D97706">
+                                            <path fill-rule="evenodd"
+                                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Mendekati
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr onclick="showToast('info','Prospek','Membuka detail Hendra Gunawan...')"
+                                style="cursor:pointer">
+                                <td>
+                                    <div style="font-weight:600">Hendra Gunawan</div>
+                                    <div style="font-size:11px;color:var(--text-secondary)">Perorangan · 0878-1111-2222
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-individual">Perorangan</span></td>
+                                <td><span class="badge badge-cold">Cold</span></td>
+                                <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">Rp
+                                    18.000.000</td>
+                                <td>
+                                    <div style="font-size:12px">5 Apr 2026</div>
+                                </td>
+                            </tr>
+                            <tr onclick="showToast('info','Prospek','Membuka detail PT Sejahtera Bersama...')"
+                                style="cursor:pointer">
+                                <td>
+                                    <div style="font-weight:600">PT Sejahtera Bersama</div>
+                                    <div style="font-size:11px;color:var(--text-secondary)">Rina Hartati ·
+                                        0812-9999-0000</div>
+                                </td>
+                                <td><span class="badge badge-corporate">Perusahaan</span></td>
+                                <td><span class="badge badge-converted">Terkonversi</span></td>
+                                <td style="font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px">Rp
+                                    200.000.000</td>
+                                <td>
+                                    <div style="font-size:12px">3 Apr 2026</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Kolom Kanan -->
+                <div style="display:flex;flex-direction:column;gap:16px">
+
+                    <!-- Aktivitas Terbaru -->
+                    <div class="activity-feed">
+                        <div class="table-header">
+                            <div class="table-title">Aktivitas Terbaru</div>
+                            <a href="activities.html" class="btn btn-outline btn-sm">Semua →</a>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-dot kunjungan"
+                                style="display:flex;align-items:center;justify-content:center">
+                                <svg width="18" height="18" viewBox="0 0 20 20" fill="#16A34A">
+                                    <path fill-rule="evenodd"
+                                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="feed-body">
+                                <div class="feed-title">Kunjungan — PT Maju Abadi</div>
+                                <div class="feed-sub">Pertemuan tindak lanjut di kantor klien</div>
+                                <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+                                    <span class="gps-verified" style="display:inline-flex;align-items:center;gap:3px">
+                                        <svg width="9" height="9" viewBox="0 0 20 20" fill="#16A34A">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        85m</span>
+                                    <span class="feed-time">Hari ini 09:15</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-dot whatsapp"
+                                style="display:flex;align-items:center;justify-content:center">
+                                <svg width="18" height="18" viewBox="0 0 20 20" fill="#16A34A">
+                                    <path fill-rule="evenodd"
+                                        d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="feed-body">
+                                <div class="feed-title">WhatsApp — Sari Dewi</div>
+                                <div class="feed-sub">Mengirimkan katalog produk &amp; penawaran harga</div>
+                                <div style="margin-top:5px"><span class="feed-time">Kemarin 14:30</span></div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-dot telepon"
+                                style="display:flex;align-items:center;justify-content:center">
+                                <svg width="18" height="18" viewBox="0 0 20 20" fill="#2563EB">
+                                    <path
+                                        d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                                </svg>
+                            </div>
+                            <div class="feed-body">
+                                <div class="feed-title">Telepon — CV Karya Mandiri</div>
+                                <div class="feed-sub">Diskusi kebutuhan, minat cukup tinggi</div>
+                                <div style="margin-top:5px"><span class="feed-time">6 Apr · 10:00</span></div>
+                            </div>
+                        </div>
+                        <div class="feed-item">
+                            <div class="feed-dot pertemuan"
+                                style="display:flex;align-items:center;justify-content:center">
+                                <svg width="18" height="18" viewBox="0 0 20 20" fill="#7C3AED">
+                                    <path
+                                        d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                </svg>
+                            </div>
+                            <div class="feed-body">
+                                <div class="feed-title">Pertemuan — PT Harapan Jaya</div>
+                                <div class="feed-sub">Presentasi produk, dihadiri 3 pihak</div>
+                                <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+                                    <span class="gps-fail" style="display:inline-flex;align-items:center;gap:3px">
+                                        <svg width="9" height="9" viewBox="0 0 20 20" fill="#DC2626">
+                                            <path fill-rule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        820m</span>
+                                    <span class="feed-time">5 Apr · 13:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tugas Mendatang -->
+                    <div class="card card-shadow" style="overflow:hidden">
+                        <div class="table-header">
+                            <div>
+                                <div class="table-title">Tugas Mendatang</div>
+                                <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">3 terlambat · 5
+                                    tertunda</div>
+                            </div>
+                            <button class="btn btn-outline btn-sm" onclick="openModal()">+ Tambah</button>
+                        </div>
+                        <div class="todo-item">
+                            <div class="todo-check" style="border-color:#F05252;background:#FEF2F2"></div>
+                            <div class="todo-body">
+                                <div class="todo-title-text">Demo presentasi ke PT Maju Abadi</div>
+                                <div class="todo-meta" style="color:#DC2626;display:flex;align-items:center;gap:4px">
+                                    <svg width="11" height="11" viewBox="0 0 20 20" fill="#DC2626">
+                                        <path fill-rule="evenodd"
+                                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    Terlambat — seharusnya 5 Apr
+                                </div>
+                            </div>
+                            <span class="priority-high">Tinggi</span>
+                        </div>
+                        <div class="todo-item">
+                            <div class="todo-check"></div>
+                            <div class="todo-body">
+                                <div class="todo-title-text">Kirim proposal ke CV Karya Mandiri</div>
+                                <div class="todo-meta">Batas: Hari ini, 8 Apr 2026</div>
+                            </div>
+                            <span class="priority-high">Tinggi</span>
+                        </div>
+                        <div class="todo-item">
+                            <div class="todo-check"></div>
+                            <div class="todo-body">
+                                <div class="todo-title-text">Tindak lanjut Sari Dewi soal harga</div>
+                                <div class="todo-meta">Batas: Besok, 9 Apr 2026</div>
+                            </div>
+                            <span class="priority-med">Sedang</span>
+                        </div>
+                        <div class="todo-item">
+                            <div class="todo-check"></div>
+                            <div class="todo-body">
+                                <div class="todo-title-text">Perbarui status prospek — Hendra Gunawan</div>
+                                <div class="todo-meta">Batas: 11 Apr 2026</div>
+                            </div>
+                            <span class="priority-low">Rendah</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL: Tambah Prospek -->
+    <div class="modal-overlay" id="addModal" onclick="closeModalOutside(event)">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Tambah Prospek Baru</div>
+                <button class="modal-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="display:flex;gap:8px;margin-bottom:20px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:4px">
+                    <button id="tab-ind" onclick="switchTab('individual')"
+                        style="flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:var(--primary);color:#fff;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px">
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Perorangan</button>
+                    <button id="tab-corp" onclick="switchTab('corporate')"
+                        style="flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:transparent;color:var(--text-secondary);transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px">
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Perusahaan</button>
+                </div>
+                <div id="form-individual">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Nama Lengkap <span>*</span></label><input
+                                class="form-input" type="text" placeholder="cth. Budi Santoso" /></div>
+                        <div class="form-group"><label class="form-label">Nomor Telepon <span>*</span></label><input
+                                class="form-input" type="text" placeholder="cth. 0812-3456-7890" /></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Email</label><input class="form-input"
+                                type="email" placeholder="email@contoh.com" /></div>
+                        <div class="form-group"><label class="form-label">Nomor KTP</label><input class="form-input"
+                                type="text" placeholder="16 digit nomor KTP" /></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Alamat <span>*</span></label><input
+                            class="form-input" type="text" placeholder="Alamat lengkap" /></div>
+                </div>
+                <div id="form-corporate" style="display:none">
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Nama Perusahaan <span>*</span></label><input
+                                class="form-input" type="text" placeholder="cth. PT Maju Abadi" /></div>
+                        <div class="form-group"><label class="form-label">Industri <span>*</span></label><select
+                                class="form-input form-select">
+                                <option>Manufaktur</option>
+                                <option>Ritel</option>
+                                <option>Kesehatan</option>
+                                <option>Teknologi</option>
+                                <option>Keuangan</option>
+                            </select></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label class="form-label">Nama PIC <span>*</span></label><input
+                                class="form-input" type="text" placeholder="Nama narahubung" /></div>
+                        <div class="form-group"><label class="form-label">Telepon PIC <span>*</span></label><input
+                                class="form-input" type="text" placeholder="0812-xxxx-xxxx" /></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Alamat Perusahaan <span>*</span></label><input
+                            class="form-input" type="text" placeholder="Alamat lengkap perusahaan" /></div>
+                </div>
+                <div style="height:1px;background:var(--border);margin:4px 0 16px"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Sumber Prospek <span>*</span></label><select
+                            class="form-input form-select">
+                            <option>Walk-in</option>
+                            <option>Referral</option>
+                            <option>Media Sosial</option>
+                            <option>Cold Call</option>
+                            <option>Pameran / Event</option>
+                            <option>Website</option>
+                        </select></div>
+                    <div class="form-group"><label class="form-label">Status Prospek <span>*</span></label><select
+                            class="form-input form-select">
+                            <option>Warm</option>
+                            <option>Hot</option>
+                            <option>Cold</option>
+                        </select></div>
+                </div>
+                <div class="form-group"><label class="form-label">Estimasi Nilai Transaksi (Rp)
+                        <span>*</span></label><input class="form-input" type="text" placeholder="cth. 50000000" /></div>
+                <div class="form-group">
+                    <label class="form-label">Koordinat Lokasi</label>
+                    <div style="display:flex;gap:8px">
+                        <input class="form-input" type="text" placeholder="Lintang (cth. -7.2575)" style="flex:1" />
+                        <input class="form-input" type="text" placeholder="Bujur (cth. 112.7521)" style="flex:1" />
+                        <button class="btn btn-outline" style="flex-shrink:0;padding:10px 14px">
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            Peta</button>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0"><label class="form-label">Catatan</label><textarea
+                        class="form-input" rows="2" placeholder="Informasi tambahan..."></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+                <button class="btn btn-primary" onclick="handleSave()">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Simpan Prospek
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.getElementById('topbar').classList.toggle('expanded');
+            document.getElementById('main').classList.toggle('expanded');
+        }
+        function openModal() { document.getElementById('addModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+        function closeModal() { document.getElementById('addModal').classList.remove('show'); document.body.style.overflow = ''; }
+        function closeModalOutside(e) { if (e.target === document.getElementById('addModal')) closeModal(); }
+        function switchTab(tab) {
+            const isInd = tab === 'individual';
+            document.getElementById('form-individual').style.display = isInd ? 'block' : 'none';
+            document.getElementById('form-corporate').style.display = isInd ? 'none' : 'block';
+            document.getElementById('tab-ind').style.cssText = isInd ? 'flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:var(--primary);color:#fff;transition:all .2s' : 'flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:transparent;color:var(--text-secondary);transition:all .2s';
+            document.getElementById('tab-corp').style.cssText = !isInd ? 'flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:var(--primary);color:#fff;transition:all .2s' : 'flex:1;padding:8px;border-radius:7px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;background:transparent;color:var(--text-secondary);transition:all .2s';
+        }
+        function handleSave() { closeModal(); showToast('success', 'Prospek Tersimpan!', 'Prospek baru berhasil ditambahkan ke daftar Anda.'); }
+
+        let toastCount = 0;
+        function showToast(type, title, msg) {
+            if (toastCount >= 3) { const f = document.getElementById('toastContainer').firstChild; if (f) f.remove(); }
+            const icons = {
+                success: '<svg width="18" height="18" viewBox="0 0 20 20" fill="#16A34A"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+                error: '<svg width="18" height="18" viewBox="0 0 20 20" fill="#DC2626"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+                warning: '<svg width="18" height="18" viewBox="0 0 20 20" fill="#D97706"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>',
+                info: '<svg width="18" height="18" viewBox="0 0 20 20" fill="#2563EB"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>'
+            };
+            const id = 'toast-' + Date.now();
+            const el = document.createElement('div');
+            el.className = 'toast'; el.id = id;
+            el.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="document.getElementById('${id}').remove()">×</span>`;
+            document.getElementById('toastContainer').appendChild(el);
+            toastCount++;
+            setTimeout(() => { if (document.getElementById(id)) { document.getElementById(id).remove(); toastCount = Math.max(0, toastCount - 1); } }, 4000);
+        }
+
+        const cOpts = {
+            responsive: true, plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#94A3B8' } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#94A3B8' }, beginAtZero: true }
+            }
+        };
+
+        new Chart(document.getElementById('closingChart'), {
+            type: 'line',
+            data: { labels: ['Nov', 'Des', 'Jan', 'Feb', 'Mar', 'Apr'], datasets: [{ data: [2, 4, 3, 5, 4, 3], borderColor: '#3B5BDB', backgroundColor: 'rgba(59,91,219,.08)', borderWidth: 2.5, tension: .4, fill: true, pointBackgroundColor: '#3B5BDB', pointRadius: 4, pointHoverRadius: 6 }] },
+            options: { ...cOpts, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.parsed.y + ' closing' } } } }
+        });
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: { labels: ['Hot', 'Warm', 'Cold', 'Terkonversi', 'Tidak Aktif'], datasets: [{ data: [6, 9, 5, 3, 1], backgroundColor: ['#DC2626', '#D97706', '#2563EB', '#16A34A', '#94A3B8'], borderWidth: 0, hoverOffset: 6 }] },
+            options: { cutout: '68%', plugins: { legend: { display: false } }, responsive: false }
+        });
+
+        new Chart(document.getElementById('visitChart'), {
+            type: 'bar',
+            data: { labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'], datasets: [{ data: [3, 4, 2, 2], backgroundColor: ['rgba(59,91,219,.8)', 'rgba(59,91,219,.8)', 'rgba(59,91,219,.4)', 'rgba(59,91,219,.4)'], borderRadius: 6, borderSkipped: false }] },
+            options: { ...cOpts }
+        });
+
+        new Chart(document.getElementById('sourceChart'), {
+            type: 'bar',
+            data: { labels: ['Referral', 'Media Sosial', 'Cold Call', 'Walk-in', 'Event', 'Website'], datasets: [{ data: [8, 6, 4, 3, 2, 1], backgroundColor: 'rgba(124,58,237,.7)', borderRadius: 6, borderSkipped: false }] },
+            options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#94A3B8' }, beginAtZero: true }, y: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 11 }, color: '#64748B' } } } }
+        });
+
+        setTimeout(() => showToast('success', 'Selamat datang kembali, Rizky!', 'Anda memiliki 3 tugas terlambat dan 2 prospek hot yang perlu ditindaklanjuti.'), 800);
+    </script>
+</body>
+
+</html>

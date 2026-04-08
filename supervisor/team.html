@@ -1,0 +1,2364 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Manajemen Sales</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB;
+      --primary-light: #EEF2FF;
+      --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A;
+      --sidebar-text: #94A3B8;
+      --success: #0E9F6E;
+      --warning: #E3A008;
+      --danger: #F05252;
+      --surface: #F8FAFC;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--surface);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: width .3s cubic-bezier(.4, 0, .2, 1);
+      border-right: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .sidebar.collapsed {
+      width: 68px;
+    }
+
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      min-height: 64px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #0E9F6E, #3B5BDB);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .logo-text {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--sidebar-text);
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .logo-sub {
+      opacity: 0;
+      width: 0;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, .4);
+      padding: 16px 20px 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .sidebar-section-label {
+      opacity: 0;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      overflow-x: hidden;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      margin-bottom: 2px;
+      position: relative;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, .06);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(14, 159, 110, .25), rgba(59, 91, 219, .2));
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(14, 159, 110, .35);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: #0E9F6E;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      opacity: .8;
+    }
+
+    .nav-item.active .nav-icon {
+      opacity: 1;
+    }
+
+    .nav-label {
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-label {
+      opacity: 0;
+      width: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: #F05252;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      transition: opacity .2s;
+    }
+
+    .nav-badge.green {
+      background: #0E9F6E;
+    }
+
+    .sidebar.collapsed .nav-badge {
+      opacity: 0;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      overflow: hidden;
+    }
+
+    .user-card:hover {
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .user-avatar-sm {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #0E9F6E, #3B5BDB);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .user-role-lbl {
+      font-size: 11px;
+      color: var(--sidebar-text);
+      white-space: nowrap;
+    }
+
+    .sidebar.collapsed .user-info {
+      opacity: 0;
+      width: 0;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      position: fixed;
+      left: 260px;
+      top: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(248, 250, 252, .92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      z-index: 90;
+      transition: left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .topbar.expanded {
+      left: 68px;
+    }
+
+    .toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .breadcrumb span {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb .current {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 38px;
+      width: 260px;
+      transition: all .2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 8px;
+      height: 8px;
+      background: #F05252;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid transparent;
+    }
+
+    .topbar-user:hover {
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .topbar-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0E9F6E, #3B5BDB);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .topbar-uname {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .topbar-urole {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 260px;
+      padding-top: 64px;
+      min-height: 100vh;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .main.expanded {
+      margin-left: 68px;
+    }
+
+    /* VIEWS — list page vs detail page */
+    #listPage {
+      padding: 28px;
+    }
+
+    #detailPage {
+      display: none;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: #0E9F6E;
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      background: #0C8F62;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-ghost:hover {
+      background: #F1F5F9;
+      color: var(--text-primary);
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn-xs {
+      padding: 5px 10px;
+      font-size: 11px;
+      border-radius: 7px;
+    }
+
+    .btn-warn {
+      background: #FFFBEB;
+      color: #D97706;
+      border: 1px solid #FDE68A;
+    }
+
+    .btn-warn:hover {
+      background: #D97706;
+      color: #fff;
+    }
+
+    /* SALES CARD (list view) */
+    .sales-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .sales-card {
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: all .28s;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+    }
+
+    .sales-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .1);
+      border-color: rgba(59, 91, 219, .25);
+    }
+
+    .sales-card-top {
+      padding: 22px 22px 18px;
+      position: relative;
+    }
+
+    .sales-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .sales-big-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .sales-status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      position: absolute;
+      top: 18px;
+      left: 56px;
+    }
+
+    .online {
+      background: #0E9F6E;
+    }
+
+    .offline {
+      background: #94A3B8;
+    }
+
+    .sales-name {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+      margin-bottom: 3px;
+    }
+
+    .sales-region {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .sales-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .sales-stat {
+      padding: 14px 16px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .sales-stat:last-child {
+      border-right: none;
+    }
+
+    .sales-stat-val {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .sales-stat-lbl {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .sales-card-footer {
+      padding: 12px 22px;
+      background: #F8FAFC;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* MINI PROGRESS */
+    .mini-prog-bg {
+      background: #E2E8F0;
+      border-radius: 100px;
+      height: 6px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .mini-prog-fill {
+      height: 100%;
+      border-radius: 100px;
+    }
+
+    /* BADGES */
+    .badge-hot {
+      background: #FEF2F2;
+      color: #DC2626;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-warm {
+      background: #FFFBEB;
+      color: #D97706;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-cold {
+      background: #EFF6FF;
+      color: #2563EB;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-converted {
+      background: #F0FDF4;
+      color: #16A34A;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-individual {
+      background: #F5F3FF;
+      color: #7C3AED;
+      border: 1px solid #EDE9FE;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-corporate {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #DBEAFE;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .gps-ok {
+      background: #F0FDF4;
+      color: #16A34A;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      border: 1px solid #BBF7D0;
+    }
+
+    .gps-near {
+      background: #FFFBEB;
+      color: #D97706;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      border: 1px solid #FDE68A;
+    }
+
+    .gps-fail {
+      background: #FEF2F2;
+      color: #DC2626;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      border: 1px solid #FECACA;
+    }
+
+    .pri-high {
+      background: #FEF2F2;
+      color: #DC2626;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    .pri-med {
+      background: #FFFBEB;
+      color: #D97706;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    .pri-low {
+      background: #F0FDF4;
+      color: #16A34A;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    /* DETAIL PAGE LAYOUT */
+    .detail-header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 64px;
+      z-index: 50;
+    }
+
+    .detail-big-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .detail-tabs-bar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      gap: 0;
+      position: sticky;
+      top: 136px;
+      z-index: 49;
+    }
+
+    .dtab {
+      padding: 13px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .dtab:hover {
+      color: var(--text-primary);
+    }
+
+    .dtab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .detail-content {
+      padding: 24px 28px;
+    }
+
+    /* LEADS TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 11px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+      background: #F8FAFC;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #F1F5F9;
+      transition: background .15s;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #FAFBFF;
+      cursor: pointer;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .inline-bar-bg {
+      background: #F1F5F9;
+      border-radius: 100px;
+      height: 5px;
+      width: 80px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .inline-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+    }
+
+    /* TIMELINE */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 9px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: #E2E8F0;
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: -28px;
+      top: 6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 2px var(--border);
+    }
+
+    .tl-card {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 12px 14px;
+    }
+
+    .tl-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .tl-type {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tl-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .tl-notes {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .tl-agenda {
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* KANBAN TODO */
+    .kanban-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .kanban-col {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .kanban-col-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kcount {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+    }
+
+    .todo-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 11px;
+      margin-bottom: 7px;
+      transition: all .15s;
+    }
+
+    .todo-card:hover {
+      border-color: rgba(59, 91, 219, .2);
+    }
+
+    .todo-card.overdue {
+      border-color: #FECACA;
+      background: #FEF9F9;
+    }
+
+    /* TRX TABLE */
+    .trx-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      background: #EEF2FF;
+      color: var(--primary);
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    /* READ-ONLY BANNER */
+    .readonly-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      background: #EEF2FF;
+      border: 1px solid rgba(59, 91, 219, .2);
+      border-radius: 9px;
+      font-size: 12px;
+      color: #3730A3;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+
+    /* CHART CARD */
+    .chart-card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+    }
+
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .chart-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .4);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity .2s;
+      pointer-events: none;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 18px;
+      width: 460px;
+      max-width: 96vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .18);
+      transform: scale(.96) translateY(12px);
+      transition: all .25s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-secondary);
+      transition: all .2s;
+    }
+
+    .modal-close-btn:hover {
+      background: #FEF2F2;
+      border-color: #FECACA;
+      color: #DC2626;
+    }
+
+    .modal-body {
+      padding: 20px 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border);
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      transition: all .2s;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      min-width: 300px;
+      max-width: 380px;
+      animation: slideIn .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1
+      }
+    }
+
+    .toast-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .toast-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .toast-msg {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .toast-close {
+      margin-left: auto;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp .4s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .d1 {
+      animation-delay: .05s
+    }
+
+    .d2 {
+      animation-delay: .1s
+    }
+
+    .d3 {
+      animation-delay: .15s
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 10px
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════ SIDEBAR ════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Supervisor</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="supervisor-dashboard.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="nav-label">Manajemen Sales</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <span class="nav-label">Monitor To-Do</span>
+        <span class="nav-badge">5</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="nav-label">Peta Prospek</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span class="nav-label">Laporan</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        </svg>
+        <span class="nav-label">Pengumuman</span>
+        <span class="nav-badge green">2</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Akun</div>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span class="nav-label">Profil Saya</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar-sm">DR</div>
+        <div class="user-info">
+          <div class="user-name">Dian Rahayu</div>
+          <div class="user-role-lbl">Supervisor · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════ TOPBAR ════════ -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div class="breadcrumb" id="breadcrumb">
+      <span>Dashboard</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Manajemen Sales</span>
+    </div>
+    <div class="search-bar">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+        <circle cx="11" cy="11" r="8" stroke-width="2" />
+        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input type="text" placeholder="Cari sales, prospek…" />
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="showToast('info','Notifikasi','5 notifikasi belum dibaca')">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">DR</div>
+        <div>
+          <div class="topbar-uname">Dian Rahayu</div>
+          <div class="topbar-urole">Supervisor</div>
+        </div>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════ MAIN ════════ -->
+  <main class="main" id="main">
+
+    <!-- ══════════════════════════════════════════
+     LIST PAGE
+══════════════════════════════════════════ -->
+    <div id="listPage">
+
+      <!-- Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px" class="fade-up">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Manajemen Sales</h1>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">3 sales di bawah pengawasan Anda —
+            Wilayah Surabaya & Gresik</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="showToast('info','Ekspor','Mengekspor data performa tim...')">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Ekspor Performa
+          </button>
+          <button class="btn btn-warn" onclick="openBulkModal()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            Kirim Pengingat Massal
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary bar -->
+      <div
+        style="background:var(--card);border-radius:14px;border:1px solid var(--border);margin-bottom:24px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)"
+        class="fade-up d1">
+        <div style="display:flex;flex-wrap:wrap">
+          <div style="flex:1;min-width:120px;padding:16px 22px;border-right:1px solid var(--border)">
+            <div style="font-size:22px;font-weight:800;letter-spacing:-1px">3</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">Sales Aktif</div>
+          </div>
+          <div style="flex:1;min-width:120px;padding:16px 22px;border-right:1px solid var(--border)">
+            <div style="font-size:22px;font-weight:800;color:var(--primary);letter-spacing:-1px">78</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">Total Prospek Tim
+            </div>
+          </div>
+          <div style="flex:1;min-width:120px;padding:16px 22px;border-right:1px solid var(--border)">
+            <div style="font-size:22px;font-weight:800;color:#DC2626;letter-spacing:-1px">18</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">🔥 Prospek Hot</div>
+          </div>
+          <div style="flex:1;min-width:120px;padding:16px 22px;border-right:1px solid var(--border)">
+            <div style="font-size:22px;font-weight:800;color:#16A34A;letter-spacing:-1px">11</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">Closing MTD</div>
+          </div>
+          <div style="flex:1;min-width:120px;padding:16px 22px;border-right:1px solid var(--border)">
+            <div
+              style="font-size:18px;font-weight:800;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:-1px">
+              725 Jt</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">Est. Nilai Tim</div>
+          </div>
+          <div style="flex:1;min-width:120px;padding:16px 22px">
+            <div style="font-size:22px;font-weight:800;color:#DC2626;letter-spacing:-1px">5</div>
+            <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">⏰ Tugas Terlambat
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sales Cards -->
+      <div class="sales-cards-grid fade-up d2">
+
+        <!-- CARD 1: Andi Kurniawan -->
+        <div class="sales-card" onclick="openDetail('andi')">
+          <div class="sales-card-top">
+            <div class="sales-card-header">
+              <div style="position:relative">
+                <div class="sales-big-avatar" style="background:#0E9F6E">AK</div>
+                <div class="sales-status-dot online"></div>
+              </div>
+              <div style="flex:1;margin-left:14px">
+                <div class="sales-name">Andi Kurniawan</div>
+                <div class="sales-region">📍 Surabaya Timur · Bergabung Feb 2024</div>
+                <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                  <span
+                    style="background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">🟢
+                    Online</span>
+                  <span
+                    style="background:#EEF2FF;color:var(--primary);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Aktif
+                    hari ini</span>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openDetail('andi')"
+                style="flex-shrink:0">Lihat →</button>
+            </div>
+            <!-- Target mini bar -->
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                <span style="font-size:11px;color:var(--text-secondary);font-weight:600">Target Closing April</span>
+                <span style="font-size:11px;font-weight:700;color:#0E9F6E">4/6 · 67%</span>
+              </div>
+              <div class="mini-prog-bg">
+                <div class="mini-prog-fill" style="width:67%;background:#0E9F6E"></div>
+              </div>
+            </div>
+            <!-- Lead funnel mini -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="badge-hot">🔥 7 Hot</span>
+              <span class="badge-warm">9 Warm</span>
+              <span class="badge-cold">8 Cold</span>
+              <span class="badge-converted">4 Konversi</span>
+            </div>
+          </div>
+          <div class="sales-stats-row">
+            <div class="sales-stat">
+              <div class="sales-stat-val">28</div>
+              <div class="sales-stat-lbl">Prospek</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-val" style="color:#16A34A">4</div>
+              <div class="sales-stat-lbl">Closing</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-val" style="font-size:15px">285Jt</div>
+              <div class="sales-stat-lbl">Est. Nilai</div>
+            </div>
+          </div>
+          <div class="sales-card-footer">
+            <div style="font-size:12px;color:var(--text-secondary)">Aktivitas terakhir: <strong>Hari ini 10:30</strong>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:#DC2626">2 tugas terlambat</div>
+          </div>
+        </div>
+
+        <!-- CARD 2: Siti Nurhaliza -->
+        <div class="sales-card" onclick="openDetail('siti')">
+          <div class="sales-card-top">
+            <div class="sales-card-header">
+              <div style="position:relative">
+                <div class="sales-big-avatar" style="background:#7C3AED">SN</div>
+                <div class="sales-status-dot online"></div>
+              </div>
+              <div style="flex:1;margin-left:14px">
+                <div class="sales-name">Siti Nurhaliza</div>
+                <div class="sales-region">📍 Surabaya Barat · Bergabung Mei 2023</div>
+                <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                  <span
+                    style="background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">🟢
+                    Online</span>
+                  <span
+                    style="background:#EEF2FF;color:var(--primary);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Best
+                    performer</span>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openDetail('siti')"
+                style="flex-shrink:0">Lihat →</button>
+            </div>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                <span style="font-size:11px;color:var(--text-secondary);font-weight:600">Target Closing April</span>
+                <span style="font-size:11px;font-weight:700;color:#0E9F6E">4/6 · 67%</span>
+              </div>
+              <div class="mini-prog-bg">
+                <div class="mini-prog-fill" style="width:67%;background:#0E9F6E"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="badge-hot">🔥 6 Hot</span>
+              <span class="badge-warm">9 Warm</span>
+              <span class="badge-cold">7 Cold</span>
+              <span class="badge-converted">4 Konversi</span>
+            </div>
+          </div>
+          <div class="sales-stats-row">
+            <div class="sales-stat">
+              <div class="sales-stat-val">26</div>
+              <div class="sales-stat-lbl">Prospek</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-val" style="color:#16A34A">4</div>
+              <div class="sales-stat-lbl">Closing</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-val" style="font-size:15px">260Jt</div>
+              <div class="sales-stat-lbl">Est. Nilai</div>
+            </div>
+          </div>
+          <div class="sales-card-footer">
+            <div style="font-size:12px;color:var(--text-secondary)">Aktivitas terakhir: <strong>Hari ini 11:00</strong>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:#16A34A">Semua tugas on track</div>
+          </div>
+        </div>
+
+        <!-- CARD 3: Rizky Dwi -->
+        <div class="sales-card" onclick="openDetail('rizky')">
+          <div class="sales-card-top">
+            <div class="sales-card-header">
+              <div style="position:relative">
+                <div class="sales-big-avatar" style="background:#3B5BDB">RD</div>
+                <div class="sales-status-dot online"></div>
+              </div>
+              <div style="flex:1;margin-left:14px">
+                <div class="sales-name">Rizky Dwi</div>
+                <div class="sales-region">📍 Surabaya Selatan & Gresik · Bergabung Okt 2024</div>
+                <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+                  <span
+                    style="background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">🟢
+                    Online</span>
+                  <span
+                    style="background:#FEF3C7;color:#92400E;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">⚠
+                    Perlu perhatian</span>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openDetail('rizky')"
+                style="flex-shrink:0">Lihat →</button>
+            </div>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                <span style="font-size:11px;color:var(--text-secondary);font-weight:600">Target Closing April</span>
+                <span style="font-size:11px;font-weight:700;color:#D97706">3/5 · 60%</span>
+              </div>
+              <div class="mini-prog-bg">
+                <div class="mini-prog-fill" style="width:60%;background:#D97706"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="badge-hot">🔥 5 Hot</span>
+              <span class="badge-warm">7 Warm</span>
+              <span class="badge-cold">1 Cold</span>
+              <span class="badge-converted">3 Konversi</span>
+            </div>
+          </div>
+          <div class="sales-stats-row">
+            <div class="sales-stat">
+              <div class="sales-stat-val">24</div>
+              <div class="sales-stat-lbl">Prospek</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-val" style="color:#D97706">3</div>
+              <div class="sales-stat-lbl">Closing</div>
+            </div>
+            <div class="sales-stat">
+              <div class="sales-stat-val" style="font-size:15px">180Jt</div>
+              <div class="sales-stat-lbl">Est. Nilai</div>
+            </div>
+          </div>
+          <div class="sales-card-footer">
+            <div style="font-size:12px;color:var(--text-secondary)">Aktivitas terakhir: <strong>Hari ini 09:15</strong>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:#DC2626">3 tugas terlambat</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+     DETAIL PAGE
+══════════════════════════════════════════ -->
+    <div id="detailPage">
+
+      <!-- Sticky Header -->
+      <div class="detail-header">
+        <button class="btn btn-ghost btn-sm" onclick="backToList()" style="padding:6px 10px;gap:5px">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Kembali
+        </button>
+        <div class="detail-big-avatar" id="detailAvatar" style="background:#0E9F6E">AK</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-.4px" id="detailName">Andi Kurniawan</div>
+            <span id="detailStatusBadge"
+              style="background:#F0FDF4;color:#16A34A;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">🟢
+              On Track</span>
+            <span id="detailRegionBadge" style="font-size:11px;color:var(--text-secondary)">📍 Surabaya Timur</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px" id="detailMeta">Sales · Bergabung Feb
+            2024 · Login terakhir: Hari ini 08:45</div>
+        </div>
+        <!-- Quick KPIs -->
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-1px" id="dkProspek">28</div>
+            <div
+              style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+              Prospek</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-1px;color:#16A34A" id="dkClosing">4</div>
+            <div
+              style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+              Closing</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--primary);font-family:'JetBrains Mono',monospace"
+              id="dkNilai">285Jt</div>
+            <div
+              style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+              Est. Nilai</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:18px;font-weight:800;color:#DC2626;letter-spacing:-1px" id="dkOverdue">2</div>
+            <div
+              style="font-size:10px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+              Terlambat</div>
+          </div>
+        </div>
+        <button class="btn btn-warn btn-sm" id="reminderBtn" onclick="quickReminder()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          Kirim Pengingat
+        </button>
+      </div>
+
+      <!-- Detail Tabs -->
+      <div class="detail-tabs-bar">
+        <div class="dtab active" onclick="switchDTab('overview')">Ikhtisar</div>
+        <div class="dtab" onclick="switchDTab('leads')">Daftar Prospek</div>
+        <div class="dtab" onclick="switchDTab('activity')">Aktivitas</div>
+        <div class="dtab" onclick="switchDTab('todo')">To-Do</div>
+        <div class="dtab" onclick="switchDTab('trx')">Transaksi</div>
+      </div>
+
+      <div class="detail-content">
+        <div class="readonly-banner">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Anda melihat data sales ini dalam mode <strong>baca saja</strong>. Hanya sales terkait yang dapat mengubah
+          data.
+        </div>
+
+        <!-- TAB: IKHTISAR -->
+        <div id="dtab-overview">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+            <!-- Profile Info -->
+            <div class="chart-card">
+              <div class="chart-title" style="margin-bottom:16px">Informasi Sales</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Nama Lengkap</span><span
+                    style="font-size:13px;font-weight:600" id="pName">Andi Kurniawan</span></div>
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Email</span><span
+                    style="font-size:13px;color:var(--primary)" id="pEmail">andi@nexacrm.id</span></div>
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Telepon</span><span
+                    style="font-size:13px;font-family:'JetBrains Mono',monospace;font-size:12px"
+                    id="pPhone">0812-3456-7890</span></div>
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Wilayah</span><span
+                    style="font-size:13px" id="pRegion">Surabaya Timur</span></div>
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Bergabung</span><span
+                    style="font-size:13px" id="pJoined">Februari 2024</span></div>
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Supervisor</span><span
+                    style="font-size:13px;font-weight:600">Dian Rahayu</span></div>
+                <div style="display:flex;gap:12px"><span
+                    style="font-size:12px;color:var(--text-muted);width:130px;flex-shrink:0">Login Terakhir</span><span
+                    style="font-size:13px">Hari ini, 08:45</span></div>
+              </div>
+            </div>
+            <!-- Target Card -->
+            <div class="chart-card">
+              <div class="chart-title" style="margin-bottom:16px">Target Bulan Ini — April 2026</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                    <span style="font-size:12px;color:var(--text-secondary);font-weight:500">Closing</span>
+                    <span style="font-size:12px;font-weight:700" id="targetClosingLabel">4 / 6</span>
+                  </div>
+                  <div class="mini-prog-bg" style="height:8px">
+                    <div class="mini-prog-fill" id="targetClosingBar" style="width:67%;background:#0E9F6E;height:100%">
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                    <span style="font-size:12px;color:var(--text-secondary);font-weight:500">Pendapatan Estimasi</span>
+                    <span style="font-size:12px;font-weight:700" id="targetRevenueLabel">285Jt / 400Jt</span>
+                  </div>
+                  <div class="mini-prog-bg" style="height:8px">
+                    <div class="mini-prog-fill" id="targetRevenueBar" style="width:71%;background:#0E9F6E;height:100%">
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                    <span style="font-size:12px;color:var(--text-secondary);font-weight:500">Kunjungan
+                      Terverifikasi</span>
+                    <span style="font-size:12px;font-weight:700" id="targetVisitLabel">12 / 14</span>
+                  </div>
+                  <div class="mini-prog-bg" style="height:8px">
+                    <div class="mini-prog-fill" id="targetVisitBar" style="width:86%;background:#0E9F6E;height:100%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+                <div style="font-size:12px;color:var(--text-secondary);font-weight:500;margin-bottom:8px">Distribusi
+                  Status Prospek</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <span class="badge-hot" id="dHot">🔥 7 Hot</span>
+                  <span class="badge-warm" id="dWarm">9 Warm</span>
+                  <span class="badge-cold" id="dCold">8 Cold</span>
+                  <span class="badge-converted" id="dConv">4 Terkonversi</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Closing trend chart -->
+          <div class="chart-card">
+            <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+              <div>
+                <div class="chart-title">Tren Closing 6 Bulan</div>
+                <div class="chart-sub" id="trendSubLabel">Andi Kurniawan</div>
+              </div>
+              <button class="btn btn-outline btn-sm"
+                onclick="showToast('info','Laporan','Membuka laporan lengkap...')">Laporan Lengkap</button>
+            </div>
+            <canvas id="salesTrendChart" height="120"></canvas>
+          </div>
+        </div>
+
+        <!-- TAB: PROSPEK -->
+        <div id="dtab-leads" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:13px;color:var(--text-secondary)" id="leadsCountLabel">28 prospek · Surabaya Timur
+            </div>
+            <div style="display:flex;gap:10px">
+              <select
+                style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;outline:none;appearance:none;background:#fff;cursor:pointer">
+                <option>Semua Status</option>
+                <option>Hot</option>
+                <option>Warm</option>
+                <option>Cold</option>
+                <option>Terkonversi</option>
+              </select>
+              <select
+                style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;outline:none;appearance:none;background:#fff;cursor:pointer">
+                <option>Semua Tipe</option>
+                <option>Perorangan</option>
+                <option>Perusahaan</option>
+              </select>
+            </div>
+          </div>
+          <div
+            style="background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama Prospek</th>
+                  <th>Tipe</th>
+                  <th>Status</th>
+                  <th>Sumber</th>
+                  <th>Est. Nilai</th>
+                  <th>Aktivitas Terakhir</th>
+                  <th>Agenda Berikutnya</th>
+                </tr>
+              </thead>
+              <tbody id="leadsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB: AKTIVITAS -->
+        <div id="dtab-activity" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:13px;color:var(--text-secondary)">Semua catatan aktivitas tindak lanjut</div>
+            <select
+              style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:inherit;outline:none;appearance:none;background:#fff;cursor:pointer">
+              <option>Semua Jenis</option>
+              <option>Kunjungan</option>
+              <option>Telepon</option>
+              <option>WhatsApp</option>
+              <option>Pertemuan</option>
+            </select>
+          </div>
+          <div class="timeline" id="activityTimeline"></div>
+        </div>
+
+        <!-- TAB: TO-DO -->
+        <div id="dtab-todo" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:13px;color:var(--text-secondary)" id="todoCountLabel">5 tugas · 2 terlambat</div>
+            <button class="btn btn-warn btn-sm" onclick="quickReminder()">📢 Ingatkan Sales</button>
+          </div>
+          <div class="kanban-cols" id="todoKanban"></div>
+        </div>
+
+        <!-- TAB: TRANSAKSI -->
+        <div id="dtab-trx" style="display:none">
+          <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:13px;color:var(--text-secondary)" id="trxCountLabel">8 transaksi tercatat</div>
+            <button class="btn btn-outline btn-sm"
+              onclick="showToast('info','Ekspor','Mengekspor riwayat transaksi...')">Ekspor .xlsx</button>
+          </div>
+          <div
+            style="background:var(--card);border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Prospek / Klien</th>
+                  <th>Produk</th>
+                  <th>Total Nilai</th>
+                  <th>No. Order</th>
+                </tr>
+              </thead>
+              <tbody id="trxTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: Bulk Reminder -->
+  <div class="modal-overlay" id="bulkModal" onclick="if(event.target===this)closeBulkModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">📢 Kirim Pengingat Massal</div>
+        <button class="modal-close-btn" onclick="closeBulkModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div
+          style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#92400E;font-weight:500">
+          ⚠ Pengingat akan dikirim sebagai notifikasi ke sales terpilih.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+          <div
+            style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F8FAFC;border:1px solid var(--border);border-radius:9px">
+            <input type="checkbox" checked style="cursor:pointer;width:15px;height:15px" />
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600">Rizky Dwi</div>
+              <div style="font-size:11px;color:var(--text-secondary)">3 tugas terlambat</div>
+            </div>
+            <span class="badge-hot">3 terlambat</span>
+          </div>
+          <div
+            style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F8FAFC;border:1px solid var(--border);border-radius:9px">
+            <input type="checkbox" checked style="cursor:pointer;width:15px;height:15px" />
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600">Andi Kurniawan</div>
+              <div style="font-size:11px;color:var(--text-secondary)">2 tugas terlambat</div>
+            </div>
+            <span class="badge-warm">2 terlambat</span>
+          </div>
+          <div
+            style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F8FAFC;border:1px solid var(--border);border-radius:9px;opacity:.5">
+            <input type="checkbox" disabled style="cursor:not-allowed;width:15px;height:15px" />
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600">Siti Nurhaliza</div>
+              <div style="font-size:11px;color:var(--text-secondary)">Tidak ada tugas terlambat</div>
+            </div>
+            <span
+              style="background:#F0FDF4;color:#16A34A;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">✓
+              On Track</span>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Pesan Tambahan (Opsional)</label>
+          <textarea class="form-input" rows="3" placeholder="cth. Mohon selesaikan sebelum EOD hari ini…"
+            style="resize:none"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeBulkModal()">Batal</button>
+        <button class="btn btn-primary" onclick="sendBulkReminder()">Kirim Pengingat</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ══════════════════════════════════════════
+    // DATA PER SALES
+    // ══════════════════════════════════════════
+    const SALES_DATA = {
+      andi: {
+        name: 'Andi Kurniawan', initials: 'AK', color: '#0E9F6E',
+        email: 'andi@nexacrm.id', phone: '0812-3456-7890', region: 'Surabaya Timur',
+        joined: 'Februari 2024', lastLogin: 'Hari ini, 08:45',
+        status: 'On Track', statusClass: 'background:#F0FDF4;color:#16A34A',
+        prospek: 28, closing: 4, nilai: '285Jt', overdue: 2,
+        target: { closing: '4/6', closingPct: 67, revenue: '285Jt / 400Jt', revenuePct: 71, visit: '12/14', visitPct: 86 },
+        badges: { hot: '7', warm: '9', cold: '8', conv: '4' },
+        trend: [3, 5, 4, 6, 5, 4],
+        leads: [
+          { name: 'RS Bhayangkara Surabaya', type: 'corporate', status: 'hot', source: 'Referral', value: '95 Jt', last: 'Hari ini 10:30', next: '10 Apr 2026' },
+          { name: 'Klinik Pratama Husada', type: 'corporate', status: 'hot', source: 'Cold Call', value: '65 Jt', last: '7 Apr 2026', next: '12 Apr 2026' },
+          { name: 'Apotek Maju Jaya', type: 'corporate', status: 'warm', source: 'Referral', value: '42 Jt', last: '5 Apr 2026', next: '15 Apr 2026' },
+          { name: 'dr. Budi Hartono', type: 'individual', status: 'warm', source: 'Walk-in', value: '28 Jt', last: '3 Apr 2026', next: '—' },
+          { name: 'Klinik Bersama Sehat', type: 'corporate', status: 'cold', source: 'Event', value: '18 Jt', last: '28 Mar 2026', next: '—' },
+          { name: 'Apotek 24 Jam', type: 'corporate', status: 'converted', source: 'Referral', value: '85 Jt', last: '20 Mar 2026', next: '—' },
+        ],
+        activities: [
+          { type: 'Pertemuan', icon: '🤝', bg: '#F5F3FF', date: 'Hari ini 10:30', lead: 'RS Bhayangkara', notes: 'Presentasi alat kesehatan ke tim pengadaan. 3 pengambil keputusan hadir. Sangat tertarik.', agenda: 'Demo lanjutan 15 Apr', gps: 'ok', dist: '120m' },
+          { type: 'Telepon', icon: '📞', bg: '#EFF6FF', date: '7 Apr 14:00', lead: 'Klinik Pratama Husada', notes: 'Diskusi kelengkapan dokumen pengadaan. Minta dikirimkan spesifikasi teknis.', agenda: 'Kirim spek teknis 9 Apr', gps: null },
+          { type: 'Kunjungan', icon: '📍', bg: '#F0FDF4', date: '5 Apr 09:30', lead: 'Apotek Maju Jaya', notes: 'Kunjungan pertama. Bertemu dengan apoteker pengelola. Demo singkat Glukometer.', agenda: 'Tindak lanjut 15 Apr', gps: 'ok', dist: '85m' },
+          { type: 'WhatsApp', icon: '💬', bg: '#F0FDF4', date: '3 Apr 15:00', lead: 'dr. Budi Hartono', notes: 'Mengirimkan brosur Tensimeter dan Pulse Oximeter.', gps: null },
+          { type: 'Demo', icon: '🖥', bg: '#ECFEFF', date: '1 Apr 10:00', lead: 'Klinik Bersama Sehat', notes: 'Demo Glukometer Set Lengkap. Klien tertarik tapi masih menimbang anggaran.', agenda: null, gps: 'fail', dist: '1.2km' },
+        ],
+        todos: {
+          tertunda: [
+            { title: 'Kirim spesifikasi teknis ke RS Bhayangkara', due: '10 Apr 2026', lead: 'RS Bhayangkara', pri: 'high' },
+            { title: 'Koordinasi jadwal demo lanjutan', due: '14 Apr 2026', lead: 'Klinik Pratama Husada', pri: 'med' },
+          ],
+          terlambat: [
+            { title: 'Tindak lanjut RS Bhayangkara setelah pertemuan', due: '7 Apr 2026', late: 1, lead: 'RS Bhayangkara', pri: 'high' },
+            { title: 'Rekap laporan kunjungan minggu lalu', due: '7 Apr 2026', late: 1, lead: 'Internal', pri: 'low' },
+          ],
+          selesai: [
+            { title: 'Pertemuan presentasi awal RS Bhayangkara', done: '1 Apr 2026' },
+            { title: 'Kirim brosur ke dr. Budi Hartono', done: '3 Apr 2026' },
+          ]
+        },
+        transactions: [
+          { date: '20 Mar 2026', lead: 'Apotek 24 Jam', products: ['Tensimeter × 5', 'Glukometer × 3'], total: 'Rp 85.000.000', orderId: 'SO-2026-0310' },
+          { date: '5 Feb 2026', lead: 'Klinik Pratama Husada', products: ['Pulse Oximeter × 10'], total: 'Rp 32.500.000', orderId: 'SO-2026-0148' },
+        ]
+      },
+      siti: {
+        name: 'Siti Nurhaliza', initials: 'SN', color: '#7C3AED',
+        email: 'siti@nexacrm.id', phone: '0856-9876-5432', region: 'Surabaya Barat',
+        joined: 'Mei 2023', lastLogin: 'Hari ini, 09:10',
+        status: 'Best Performer', statusClass: 'background:#EEF2FF;color:#3B5BDB',
+        prospek: 26, closing: 4, nilai: '260Jt', overdue: 0,
+        target: { closing: '4/6', closingPct: 67, revenue: '260Jt / 400Jt', revenuePct: 65, visit: '11/12', visitPct: 92 },
+        badges: { hot: '6', warm: '9', cold: '7', conv: '4' },
+        trend: [2, 4, 3, 5, 4, 4],
+        leads: [
+          { name: 'Apotek Sehat Mandiri', type: 'corporate', status: 'converted', source: 'Referral', value: '200 Jt', last: 'Hari ini 09:00', next: '—' },
+          { name: 'Klinik Harapan Bunda', type: 'corporate', status: 'hot', source: 'Referral', value: '75 Jt', last: '7 Apr 2026', next: '10 Apr 2026' },
+          { name: 'RS Mitra Keluarga', type: 'corporate', status: 'hot', source: 'Event', value: '120 Jt', last: '5 Apr 2026', next: '15 Apr 2026' },
+          { name: 'dr. Indah Permata', type: 'individual', status: 'warm', source: 'Walk-in', value: '25 Jt', last: '2 Apr 2026', next: '—' },
+          { name: 'Apotek Farma Plus', type: 'corporate', status: 'warm', source: 'Cold Call', value: '45 Jt', last: '30 Mar 2026', next: '12 Apr 2026' },
+        ],
+        activities: [
+          { type: 'Kunjungan', icon: '📍', bg: '#F0FDF4', date: 'Hari ini 09:00', lead: 'Apotek Sehat Mandiri', notes: 'Kunjungan rutin bulanan. Diskusi kebutuhan stok Metformin dan Amoxicillin bulan depan. Order baru diperkirakan 15 Apr.', agenda: 'Kirim penawaran 12 Apr', gps: 'ok', dist: '65m' },
+          { type: 'WhatsApp', icon: '💬', bg: '#F0FDF4', date: 'Hari ini 11:00', lead: 'Klinik Maju Bersama', notes: 'Mengirim penawaran harga Tensimeter Digital. Klien minta waktu 2 hari untuk mempertimbangkan.', gps: null },
+          { type: 'Telepon', icon: '📞', bg: '#EFF6FF', date: 'Kemarin 14:30', lead: 'Apotek Sehat Mandiri', notes: 'Konfirmasi jadwal demo Glukometer bulan depan. Klien setuju tanggal 20 Apr.', gps: null },
+          { type: 'Kunjungan', icon: '📍', bg: '#F0FDF4', date: '5 Apr 10:00', lead: 'RS Mitra Keluarga', notes: 'Pertemuan pertama dengan kepala pengadaan. Presentasi katalog alat kesehatan.', agenda: 'Presentasi formal 15 Apr', gps: 'near', dist: '280m' },
+        ],
+        todos: {
+          tertunda: [
+            { title: 'Kirim penawaran resmi ke Klinik Harapan Bunda', due: '12 Apr 2026', lead: 'Klinik Harapan Bunda', pri: 'high' },
+            { title: 'Persiapan presentasi RS Mitra Keluarga', due: '14 Apr 2026', lead: 'RS Mitra Keluarga', pri: 'high' },
+            { title: 'Tindak lanjut Apotek Farma Plus', due: '15 Apr 2026', lead: 'Apotek Farma Plus', pri: 'med' },
+          ],
+          terlambat: [],
+          selesai: [
+            { title: 'Kunjungan rutin Apotek Sehat Mandiri', done: '8 Apr 2026' },
+            { title: 'Kirim brosur Tensimeter ke Klinik Maju Bersama', done: '7 Apr 2026' },
+            { title: 'Konfirmasi jadwal demo Glukometer', done: '7 Apr 2026' },
+          ]
+        },
+        transactions: [
+          { date: '15 Mar 2026', lead: 'Apotek Sehat Mandiri', products: ['Amoxicillin × 300', 'Metformin × 200'], total: 'Rp 127.000.000', orderId: 'SO-2026-0285' },
+          { date: '1 Feb 2026', lead: 'Klinik Maju Bersama', products: ['Tensimeter × 5', 'Termometer × 10'], total: 'Rp 82.500.000', orderId: 'SO-2026-0142' },
+          { date: '20 Jan 2026', lead: 'Apotek Sehat Mandiri', products: ['Paracetamol × 500', 'Antasida × 200'], total: 'Rp 50.500.000', orderId: 'SO-2026-0095' },
+        ]
+      },
+      rizky: {
+        name: 'Rizky Dwi', initials: 'RD', color: '#3B5BDB',
+        email: 'rizky@nexacrm.id', phone: '0821-1234-5678', region: 'Surabaya Selatan & Gresik',
+        joined: 'Oktober 2024', lastLogin: 'Hari ini, 09:15',
+        status: 'Perlu Perhatian', statusClass: 'background:#FEF3C7;color:#92400E',
+        prospek: 24, closing: 3, nilai: '180Jt', overdue: 3,
+        target: { closing: '3/5', closingPct: 60, revenue: '180Jt / 350Jt', revenuePct: 51, visit: '8/11', visitPct: 73 },
+        badges: { hot: '5', warm: '7', cold: '1', conv: '3' },
+        trend: [2, 3, 3, 4, 3, 3],
+        leads: [
+          { name: 'PT Maju Abadi', type: 'corporate', status: 'hot', source: 'Referral', value: '85 Jt', last: 'Hari ini 09:15', next: '10 Apr 2026' },
+          { name: 'CV Karya Mandiri', type: 'corporate', status: 'hot', source: 'Cold Call', value: '120 Jt', last: '7 Apr 2026', next: '11 Apr 2026' },
+          { name: 'Sari Dewi', type: 'individual', status: 'warm', source: 'Media Sosial', value: '32 Jt', last: 'Kemarin', next: '9 Apr 2026' },
+          { name: 'UD Mitra Usaha', type: 'corporate', status: 'warm', source: 'Referral', value: '67 Jt', last: '6 Apr 2026', next: '15 Apr 2026' },
+          { name: 'Hendra Gunawan', type: 'individual', status: 'cold', source: 'Walk-in', value: '18 Jt', last: '5 Apr 2026', next: '—' },
+          { name: 'PT Sejahtera Bersama', type: 'corporate', status: 'converted', source: 'Pameran', value: '200 Jt', last: '3 Apr 2026', next: '—' },
+        ],
+        activities: [
+          { type: 'Kunjungan', icon: '📍', bg: '#F0FDF4', date: 'Hari ini 09:15', lead: 'PT Maju Abadi', notes: 'Pertemuan tindak lanjut di kantor klien. Budi Santoso hadir bersama 2 staf teknis. Diskusi mendalam mengenai spesifikasi mesin.', agenda: 'Kirim proposal resmi 10 Apr', gps: 'ok', dist: '85m' },
+          { type: 'WhatsApp', icon: '💬', bg: '#F0FDF4', date: 'Kemarin 14:20', lead: 'Sari Dewi', notes: 'Mengirimkan brosur produk terbaru dan daftar harga. Klien merespons positif.', gps: null },
+          { type: 'Telepon', icon: '📞', bg: '#EFF6FF', date: '7 Apr 10:00', lead: 'CV Karya Mandiri', notes: 'Diskusi kebutuhan. Minta penawaran formal sebelum 10 Apr.', agenda: 'Kirim penawaran 8 Apr', gps: null },
+          { type: 'Pertemuan', icon: '🤝', bg: '#F5F3FF', date: '5 Apr 13:00', lead: 'PT Harapan Jaya', notes: 'Presentasi produk. Dihadiri 3 pihak pengambil keputusan.', agenda: null, gps: 'fail', dist: '820m' },
+          { type: 'Kunjungan', icon: '📍', bg: '#F0FDF4', date: '1 Apr 09:00', lead: 'CV Karya Mandiri', notes: 'Kunjungan pertama. Survei kebutuhan medis klinik.', agenda: 'Demo 11 Apr', gps: 'near', dist: '320m' },
+        ],
+        todos: {
+          tertunda: [
+            { title: 'Kirim proposal resmi ke PT Maju Abadi', due: '10 Apr 2026', lead: 'PT Maju Abadi', pri: 'high' },
+            { title: 'Tindak lanjut Sari Dewi soal harga', due: '9 Apr 2026', lead: 'Sari Dewi', pri: 'med' },
+          ],
+          terlambat: [
+            { title: 'Demo presentasi produk ke tim teknis', due: '5 Apr 2026', late: 3, lead: 'PT Maju Abadi', pri: 'high' },
+            { title: 'Kirim proposal ke CV Karya Mandiri', due: '6 Apr 2026', late: 2, lead: 'CV Karya Mandiri', pri: 'high' },
+            { title: 'Update status Hendra Gunawan', due: '7 Apr 2026', late: 1, lead: 'Hendra Gunawan', pri: 'med' },
+          ],
+          selesai: [
+            { title: 'Kunjungan perdana PT Maju Abadi', done: '1 Apr 2026' },
+            { title: 'Kirim brosur ke Sari Dewi', done: '7 Apr 2026' },
+          ]
+        },
+        transactions: [
+          { date: '3 Apr 2026', lead: 'PT Sejahtera Bersama', products: ['Tensimeter × 10'], total: 'Rp 3.850.000', orderId: 'SO-2026-0408' },
+          { date: '15 Mar 2026', lead: 'PT Maju Abadi', products: ['Glukometer × 5', 'Pulse Oximeter × 5'], total: 'Rp 115.000.000', orderId: 'SO-2026-0282' },
+          { date: '1 Feb 2026', lead: 'UD Mitra Usaha', products: ['Amoxicillin × 100'], total: 'Rp 61.500.000', orderId: 'SO-2026-0141' },
+        ]
+      }
+    };
+
+    let activeSales = null;
+    let trendChart = null;
+
+    // ════════ NAVIGATION ════════
+    function openDetail(salesKey) {
+      activeSales = salesKey;
+      const d = SALES_DATA[salesKey];
+
+      // Update header
+      document.getElementById('detailAvatar').textContent = d.initials;
+      document.getElementById('detailAvatar').style.background = d.color;
+      document.getElementById('detailName').textContent = d.name;
+      document.getElementById('detailStatusBadge').textContent = d.status;
+      document.getElementById('detailStatusBadge').style.cssText = d.statusClass + ';font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px';
+      document.getElementById('detailRegionBadge').textContent = '📍 ' + d.region;
+      document.getElementById('detailMeta').textContent = 'Sales · Bergabung ' + d.joined + ' · Login terakhir: ' + d.lastLogin;
+      document.getElementById('dkProspek').textContent = d.prospek;
+      document.getElementById('dkClosing').textContent = d.closing;
+      document.getElementById('dkNilai').textContent = d.nilai;
+      document.getElementById('dkOverdue').textContent = d.overdue;
+      document.getElementById('dkOverdue').style.color = d.overdue > 0 ? '#DC2626' : '#16A34A';
+
+      // Breadcrumb
+      document.getElementById('breadcrumb').innerHTML = `
+    <span>Dashboard</span><span style="color:var(--text-muted);font-size:12px">›</span>
+    <span style="cursor:pointer;color:var(--primary)" onclick="backToList()">Manajemen Sales</span>
+    <span style="color:var(--text-muted);font-size:12px">›</span>
+    <span class="current">${d.name}</span>`;
+
+      // Profile info
+      document.getElementById('pName').textContent = d.name;
+      document.getElementById('pEmail').textContent = d.email;
+      document.getElementById('pPhone').textContent = d.phone;
+      document.getElementById('pRegion').textContent = d.region;
+      document.getElementById('pJoined').textContent = d.joined;
+
+      // Target
+      document.getElementById('targetClosingLabel').textContent = d.target.closing;
+      document.getElementById('targetClosingBar').style.width = d.target.closingPct + '%';
+      document.getElementById('targetClosingBar').style.background = d.target.closingPct >= 70 ? '#0E9F6E' : '#D97706';
+      document.getElementById('targetRevenueLabel').textContent = 'Rp ' + d.target.revenue;
+      document.getElementById('targetRevenueBar').style.width = d.target.revenuePct + '%';
+      document.getElementById('targetRevenueBar').style.background = d.target.revenuePct >= 70 ? '#0E9F6E' : '#D97706';
+      document.getElementById('targetVisitLabel').textContent = d.target.visit + ' terverifikasi';
+      document.getElementById('targetVisitBar').style.width = d.target.visitPct + '%';
+
+      document.getElementById('dHot').textContent = '🔥 ' + d.badges.hot + ' Hot';
+      document.getElementById('dWarm').textContent = d.badges.warm + ' Warm';
+      document.getElementById('dCold').textContent = d.badges.cold + ' Cold';
+      document.getElementById('dConv').textContent = d.badges.conv + ' Terkonversi';
+      document.getElementById('trendSubLabel').textContent = d.name;
+      document.getElementById('leadsCountLabel').textContent = d.prospek + ' prospek · ' + d.region;
+      document.getElementById('todoCountLabel').textContent = (d.todos.tertunda.length + d.todos.terlambat.length + d.todos.selesai.length) + ' tugas · ' + d.todos.terlambat.length + ' terlambat';
+      document.getElementById('trxCountLabel').textContent = d.transactions.length + ' transaksi tercatat';
+
+      // Trend chart
+      if (trendChart) trendChart.destroy();
+      trendChart = new Chart(document.getElementById('salesTrendChart'), {
+        type: 'line',
+        data: {
+          labels: ['Nov', 'Des', 'Jan', 'Feb', 'Mar', 'Apr'],
+          datasets: [{
+            data: d.trend,
+            borderColor: d.color,
+            backgroundColor: d.color + '14',
+            borderWidth: 2.5, tension: .4, fill: true,
+            pointBackgroundColor: d.color, pointRadius: 4, pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#94A3B8' } },
+            y: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#94A3B8' }, beginAtZero: true }
+          }
+        }
+      });
+
+      // Leads table
+      const statusMap = { hot: 'badge-hot', warm: 'badge-warm', cold: 'badge-cold', converted: 'badge-converted' };
+      const statusLabel = { hot: 'Hot', warm: 'Warm', cold: 'Cold', converted: 'Terkonversi' };
+      document.getElementById('leadsTableBody').innerHTML = d.leads.map(l => `
+    <tr onclick="showToast('info','Prospek','${l.name} — membuka detail (read-only)')">
+      <td>
+        <div style="font-weight:700">${l.name}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:1px">${l.source}</div>
+      </td>
+      <td><span class="${l.type === 'corporate' ? 'badge-corporate' : 'badge-individual'}">${l.type === 'corporate' ? 'Perusahaan' : 'Perorangan'}</span></td>
+      <td><span class="${statusMap[l.status]}">${statusLabel[l.status]}</span></td>
+      <td style="font-size:12px;color:var(--text-secondary)">${l.source}</td>
+      <td style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary)">Rp ${l.value}</td>
+      <td style="font-size:12px">${l.last}</td>
+      <td style="font-size:12px;color:var(--text-secondary)">${l.next}</td>
+    </tr>`).join('');
+
+      // Activity timeline
+      const gpsMap = { ok: 'gps-ok', near: 'gps-near', fail: 'gps-fail' };
+      const gpsLabel = { ok: '✅ Terverifikasi', near: '⚠ Mendekati', fail: '❌ Di Luar Jangkauan' };
+      document.getElementById('activityTimeline').innerHTML = d.activities.map(a => `
+    <div class="tl-item">
+      <div class="tl-dot" style="background:${a.bg}">${a.icon}</div>
+      <div class="tl-card">
+        <div class="tl-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="tl-type">${a.type}</span>
+            ${a.gps ? `<span class="${gpsMap[a.gps]}">${gpsLabel[a.gps]}${a.dist ? ' · ' + a.dist : ''}</span>` : ''}
+          </div>
+          <span class="tl-time">${a.date}</span>
+        </div>
+        <div class="tl-notes">${a.notes}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Prospek: <strong>${a.lead}</strong></div>
+        ${a.agenda ? `<div class="tl-agenda">📅 Agenda: ${a.agenda}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+      // Kanban todos
+      const priMap = { high: 'pri-high', med: 'pri-med', low: 'pri-low' };
+      const priLabel = { high: 'Tinggi', med: 'Sedang', low: 'Rendah' };
+      function todoCardHtml(t, overdue) {
+        return `<div class="todo-card${overdue ? ' overdue' : ''}">
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;${overdue ? 'color:#DC2626' : ''}">${t.title}</div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px">${t.lead}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="${priMap[t.pri]}">${priLabel[t.pri]}</span>
+        <span style="font-size:10px;color:${overdue ? '#DC2626' : 'var(--text-muted)'}">
+          ${overdue ? '⚠ Terlambat ' + t.late + ' hari' : '📅 ' + t.due}
+        </span>
+      </div>
+    </div>`;
+      }
+      document.getElementById('todoKanban').innerHTML = `
+    <div class="kanban-col">
+      <div class="kanban-col-title">Tertunda <span class="kcount" style="background:#EEF2FF;color:var(--primary)">${d.todos.tertunda.length}</span></div>
+      ${d.todos.tertunda.map(t => todoCardHtml(t, false)).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px 0">Tidak ada</div>'}
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-col-title">Terlambat <span class="kcount" style="background:#FEF2F2;color:#DC2626">${d.todos.terlambat.length}</span></div>
+      ${d.todos.terlambat.map(t => todoCardHtml(t, true)).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px 0">Tidak ada 🎉</div>'}
+    </div>
+    <div class="kanban-col">
+      <div class="kanban-col-title">Selesai <span class="kcount" style="background:#F0FDF4;color:#16A34A">${d.todos.selesai.length}</span></div>
+      ${d.todos.selesai.map(t => `
+        <div class="todo-card" style="opacity:.65">
+          <div style="font-size:12px;font-weight:600;text-decoration:line-through;color:var(--text-muted);margin-bottom:4px">${t.title}</div>
+          <div style="font-size:10px;color:var(--text-muted)">✓ ${t.done}</div>
+        </div>`).join('')}
+    </div>`;
+
+      // Transactions
+      document.getElementById('trxTableBody').innerHTML = d.transactions.map(t => `
+    <tr onclick="showToast('info','Transaksi','${t.orderId} — detail transaksi')">
+      <td style="font-weight:600">${t.date}</td>
+      <td style="font-weight:600">${t.lead}</td>
+      <td>${t.products.map(p => `<span class="trx-chip">${p}</span>`).join('')}</td>
+      <td style="font-weight:700;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--primary)">${t.total}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-secondary)">${t.orderId}</td>
+    </tr>`).join('');
+
+      // Show detail, hide list
+      document.getElementById('listPage').style.display = 'none';
+      document.getElementById('detailPage').style.display = 'block';
+      switchDTab('overview');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function backToList() {
+      document.getElementById('listPage').style.display = 'block';
+      document.getElementById('detailPage').style.display = 'none';
+      activeSales = null;
+      document.getElementById('breadcrumb').innerHTML = `
+    <span>Dashboard</span><span style="color:var(--text-muted);font-size:12px">›</span>
+    <span class="current">Manajemen Sales</span>`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ════════ TABS ════════
+    function switchDTab(name) {
+      const tabs = ['overview', 'leads', 'activity', 'todo', 'trx'];
+      tabs.forEach(t => {
+        document.getElementById('dtab-' + t).style.display = t === name ? 'block' : 'none';
+      });
+      document.querySelectorAll('.dtab').forEach((el, i) => {
+        el.classList.toggle('active', tabs[i] === name);
+      });
+    }
+
+    // ════════ REMINDERS ════════
+    function quickReminder() {
+      if (!activeSales) return;
+      const d = SALES_DATA[activeSales];
+      showToast('success', 'Pengingat Terkirim', 'Notifikasi berhasil dikirim ke ' + d.name + ' untuk ' + d.overdue + ' tugas terlambat.');
+    }
+
+    function openBulkModal() { document.getElementById('bulkModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function closeBulkModal() { document.getElementById('bulkModal').classList.remove('show'); document.body.style.overflow = ''; }
+    function sendBulkReminder() { closeBulkModal(); showToast('success', 'Pengingat Massal Terkirim!', 'Notifikasi berhasil dikirim ke Rizky Dwi dan Andi Kurniawan.'); }
+
+    // ════════ SIDEBAR ════════
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    // ════════ TOAST ════════
+    let tc = 0;
+    function showToast(type, title, msg) {
+      if (tc >= 3) { const f = document.getElementById('toastContainer').firstChild; if (f) f.remove(); }
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+      const id = 't-' + Date.now();
+      const el = document.createElement('div');
+      el.className = 'toast'; el.id = id;
+      el.innerHTML = `<span class="toast-icon">${icons[type]}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="document.getElementById('${id}').remove()">×</span>`;
+      document.getElementById('toastContainer').appendChild(el);
+      tc++;
+      setTimeout(() => { if (document.getElementById(id)) { document.getElementById(id).remove(); tc = Math.max(0, tc - 1); } }, 4000);
+    }
+
+    setTimeout(() => showToast('info', 'Manajemen Sales', '3 sales aktif. Rizky Dwi membutuhkan perhatian — 3 tugas terlambat.'), 600);
+  </script>
+</body>
+
+</html>

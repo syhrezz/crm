@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Laporan Tim</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB; --primary-light: #EEF2FF; --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A; --sidebar-text: #94A3B8;
+      --success: #0E9F6E; --warning: #E3A008; --danger: #F05252;
+      --surface: #F8FAFC; --card: #FFFFFF; --border: #E2E8F0;
+      --text-primary: #0F172A; --text-secondary: #64748B; --text-muted: #94A3B8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--surface); color: var(--text-primary); overflow-x: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; transition: width .3s cubic-bezier(.4, 0, .2, 1); border-right: 1px solid rgba(255, 255, 255, .05); }
+    .sidebar.collapsed { width: 68px; }
+    .sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, .06); min-height: 64px; }
+    .logo-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; }
+    .logo-text { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.5px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .logo-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+    .sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub { opacity: 0; width: 0; }
+    .sidebar-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(148, 163, 184, .4); padding: 16px 20px 6px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .sidebar.collapsed .sidebar-section-label { opacity: 0; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; overflow-x: hidden; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .1); border-radius: 10px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--sidebar-text); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; margin-bottom: 2px; text-decoration: none; position: relative; }
+    .nav-item:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(14, 159, 110, .25), rgba(59, 91, 219, .2)); color: #fff; box-shadow: inset 0 0 0 1px rgba(14, 159, 110, .35); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #0E9F6E; border-radius: 0 4px 4px 0; }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: .8; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-label { transition: opacity .2s; }
+    .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+    .nav-badge { margin-left: auto; background: #F05252; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; flex-shrink: 0; transition: opacity .2s; }
+    .nav-badge.green { background: #0E9F6E; }
+    .sidebar.collapsed .nav-badge { opacity: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255, 255, 255, .06); }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; overflow: hidden; }
+    .user-card:hover { background: rgba(255, 255, 255, .06); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; }
+    .user-role-label { font-size: 11px; color: var(--sidebar-text); white-space: nowrap; }
+    .sidebar.collapsed .user-info { opacity: 0; width: 0; }
+
+    /* ── TOPBAR ── */
+    .topbar { position: fixed; left: 260px; top: 0; right: 0; height: 64px; background: rgba(248, 250, 252, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 90; transition: left .3s cubic-bezier(.4, 0, .2, 1); }
+    .topbar.expanded { left: 68px; }
+    .toggle-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+    .toggle-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .breadcrumb span { font-size: 13px; color: var(--text-secondary); }
+    .breadcrumb .current { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; position: relative; }
+    .icon-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .notif-dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; background: #F05252; border-radius: 50%; border: 2px solid #fff; }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; border: 1px solid transparent; }
+    .topbar-user:hover { background: #fff; border-color: var(--border); }
+    .topbar-avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .topbar-uname { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-urole { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 260px; padding-top: 64px; min-height: 100vh; transition: margin-left .3s cubic-bezier(.4, 0, .2, 1); }
+    .main.expanded { margin-left: 68px; }
+    .content { padding: 28px; }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; border: none; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 1px 3px rgba(59, 91, 219, .3); }
+    .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(59, 91, 219, .35); transform: translateY(-1px); }
+    .btn-outline { background: #fff; color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+
+    /* ── CARDS ── */
+    .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; padding: 20px; border-radius: 14px; border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); border-radius: 4px 0 0 4px; }
+    .stat-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .stat-val { font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -.5px; font-family: 'JetBrains Mono', monospace; }
+    .stat-diff { font-size: 12px; font-weight: 700; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+    .diff-up { color: #16A34A; }
+    .diff-down { color: #DC2626; }
+
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .chart-panel { padding: 20px; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .panel-title { font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
+
+    /* ── FILTERS BAR ── */
+    .filters-bar { background: #fff; padding: 14px 20px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .filters-group { display: flex; gap: 10px; align-items: center; }
+    .filter-select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 12px; font-family: inherit; outline: none; appearance: none; background: #fff; cursor: pointer; min-width: 140px; }
+    .filter-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 91, 219, .1); }
+
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--text-secondary); background: #F8FAFC; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #F1F5F9; transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FAFBFF; cursor: pointer; }
+    tbody td { padding: 14px 16px; font-size: 13px; vertical-align: middle; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Supervisor</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="team.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Manajemen Sales</span>
+      </a>
+      <a href="todo-monitor.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <span class="nav-label">Monitor To-Do</span>
+        <span class="nav-badge">5</span>
+      </a>
+      <a href="schedule.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="nav-label">Jadwal Tim</span>
+      </a>
+      <a href="map.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Peta Prospek</span>
+      </a>
+      <a href="reports.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">Laporan</span>
+      </a>
+      <a href="announcements.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        <span class="nav-label">Pengumuman</span>
+        <span class="nav-badge green">2</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Akun</div>
+      <a href="profile.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="nav-label">Profil Saya</span>
+      </a>
+      <a href="../sales/help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">DR</div>
+        <div class="user-info">
+          <div class="user-name">Dian Rahayu</div>
+          <div class="user-role-label">Supervisor · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Dashboard</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Laporan Kinerja</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="window.location.href='notifications.html'">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">DR</div>
+        <div>
+          <div class="topbar-uname">Dian Rahayu</div>
+          <div class="topbar-urole">Supervisor</div>
+        </div>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Laporan & Analitik Kinerja Tim</h1>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">Evaluasi performa penjualan bulanan dari tim yang Anda kelola.</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="alert('Membuat PDF...')">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Ekspor PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters Bar -->
+      <div class="filters-bar">
+        <div class="filters-group">
+          <select class="filter-select" style="min-width:160px;font-weight:600">
+            <option>Bulan Ini (Apr 2026)</option>
+            <option>Bulan Lalu (Mar 2026)</option>
+            <option>Q1 2026</option>
+            <option>Q4 2025</option>
+            <option>Kustom...</option>
+          </select>
+          <select class="filter-select">
+            <option>Semua Anggota Tim</option>
+            <option>Siti Nurhaliza</option>
+            <option>Andi Kurniawan</option>
+            <option>Rizky Dwi</option>
+          </select>
+          <select class="filter-select">
+            <option>Semua Wilayah</option>
+            <option>Surabaya Barat</option>
+            <option>Surabaya Timur</option>
+            <option>Surabaya Selatan</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm">Terapkan Filter</button>
+      </div>
+
+      <!-- Big Stats -->
+      <div class="stats-grid">
+        <div class="stat-card" style="border-left-color:var(--primary)">
+          <div class="stat-title">Total Pendapatan (Est)</div>
+          <div class="stat-val">Rp 725<span style="font-size:16px">Jt</span></div>
+          <div class="stat-diff diff-up"><span>↑ 12.5%</span> <span style="font-weight:500;color:var(--text-muted)">vs bln lalu</span></div>
+        </div>
+        <div class="stat-card" style="border-left-color:#16A34A">
+          <div class="stat-title">Total Closing</div>
+          <div class="stat-val">11 <span style="font-size:16px;font-weight:600;font-family:sans-serif">Trans.</span></div>
+          <div class="stat-diff diff-up"><span>↑ 2</span> <span style="font-weight:500;color:var(--text-muted)">vs bln lalu</span></div>
+        </div>
+        <div class="stat-card" style="border-left-color:#D97706">
+          <div class="stat-title">Prospek Masuk Baru</div>
+          <div class="stat-val">78 <span style="font-size:16px;font-weight:600;font-family:sans-serif">Prospek</span></div>
+          <div class="stat-diff diff-up"><span>↑ 8%</span> <span style="font-weight:500;color:var(--text-muted)">vs bln lalu</span></div>
+        </div>
+        <div class="stat-card" style="border-left-color:#7C3AED">
+          <div class="stat-title">Aktivitas Sales Tim</div>
+          <div class="stat-val">42 <span style="font-size:16px;font-weight:600;font-family:sans-serif">Catatan</span></div>
+          <div class="stat-diff diff-down"><span>↓ 5%</span> <span style="font-weight:500;color:var(--text-muted)">vs bln lalu</span></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="card chart-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Pendapatan vs Target per Sales</h3>
+            <span style="font-size:12px;color:var(--text-secondary)">April 2026</span>
+          </div>
+          <canvas id="revChart" height="90"></canvas>
+        </div>
+        
+        <div class="card chart-panel">
+          <div class="panel-header">
+            <h3 class="panel-title">Tingkat Konversi Tim</h3>
+          </div>
+          <div style="display:flex;justify-content:center;position:relative;height:140px;margin-bottom:10px">
+            <canvas id="conversionChart" height="140"></canvas>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+              <div style="font-size:18px;font-weight:800;font-family:'JetBrains Mono'">14%</div>
+              <div style="font-size:10px;color:var(--text-secondary);font-weight:700">WIN RATE</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-around;margin-top:20px;border-top:1px solid #F1F5F9;padding-top:10px">
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700">78</div><div style="font-size:10px;color:var(--text-secondary)">TOTAL LEADS</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:#16A34A">11</div><div style="font-size:10px;color:var(--text-secondary)">WON</div></div>
+            <div style="text-align:center"><div style="font-size:14px;font-weight:700;color:#DC2626">6</div><div style="font-size:10px;color:var(--text-secondary)">LOST</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Table -->
+      <div class="card">
+        <div class="panel-header" style="margin-bottom:0;padding:16px 20px;border-bottom:1px solid var(--border)">
+          <h3 class="panel-title">Tabel Rincian Kinerja Sales</h3>
+          <button class="btn btn-outline btn-sm" onclick="alert('Export Excel...')">Ekspor Tabel (XLSX)</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Sales</th>
+                <th>Wilayah</th>
+                <th>Prospek Aktif</th>
+                <th>Won</th>
+                <th>Lost</th>
+                <th>Pendapatan Estimasi / Realisasi</th>
+                <th>Aktivitas Terverifikasi</th>
+                <th>Status Tkt. Konversi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="window.location.href='team.html'">
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:28px;height:28px;border-radius:6px;background:#7C3AED;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">SN</div>
+                    <div style="font-weight:600">Siti Nurhaliza</div>
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">Surabaya Barat</td>
+                <td style="font-weight:600;font-family:'JetBrains Mono'">26</td>
+                <td style="font-weight:700;color:#16A34A;font-family:'JetBrains Mono'">4</td>
+                <td style="font-weight:600;color:var(--text-muted);font-family:'JetBrains Mono'">1</td>
+                <td>
+                  <div style="display:flex;flex-direction:column;gap:4px;width:150px">
+                     <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;font-family:'JetBrains Mono'"><span style="color:var(--text-primary)">Rp 260Jt</span> <span style="color:var(--text-muted)">/ Rp 400Jt</span></div>
+                     <div style="height:6px;background:var(--primary-light);border-radius:4px;overflow:hidden"><div style="height:100%;width:65%;background:#0E9F6E"></div></div>
+                  </div>
+                </td>
+                <td><span style="background:#F0FDF4;color:#16A34A;font-weight:700;font-size:11px;padding:2px 8px;border-radius:10px">11 / 12 (92%)</span></td>
+                <td style="font-weight:700;color:#16A34A">15.4% <span style="font-size:10px">(Tinggi)</span></td>
+              </tr>
+              <tr onclick="window.location.href='team.html'">
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:28px;height:28px;border-radius:6px;background:#0E9F6E;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">AK</div>
+                    <div style="font-weight:600">Andi Kurniawan</div>
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">Surabaya Timur</td>
+                <td style="font-weight:600;font-family:'JetBrains Mono'">28</td>
+                <td style="font-weight:700;color:#16A34A;font-family:'JetBrains Mono'">4</td>
+                <td style="font-weight:600;color:var(--text-muted);font-family:'JetBrains Mono'">3</td>
+                <td>
+                  <div style="display:flex;flex-direction:column;gap:4px;width:150px">
+                     <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;font-family:'JetBrains Mono'"><span style="color:var(--text-primary)">Rp 285Jt</span> <span style="color:var(--text-muted)">/ Rp 400Jt</span></div>
+                     <div style="height:6px;background:var(--primary-light);border-radius:4px;overflow:hidden"><div style="height:100%;width:71%;background:#0E9F6E"></div></div>
+                  </div>
+                </td>
+                <td><span style="background:#F0FDF4;color:#16A34A;font-weight:700;font-size:11px;padding:2px 8px;border-radius:10px">12 / 14 (86%)</span></td>
+                <td style="font-weight:700;color:#16A34A">14.2% <span style="font-size:10px">(Baik)</span></td>
+              </tr>
+              <tr onclick="window.location.href='team.html'">
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:28px;height:28px;border-radius:6px;background:#3B5BDB;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">RD</div>
+                    <div style="font-weight:600">Rizky Dwi</div>
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">Surabaya Selatan</td>
+                <td style="font-weight:600;font-family:'JetBrains Mono'">24</td>
+                <td style="font-weight:700;color:#16A34A;font-family:'JetBrains Mono'">3</td>
+                <td style="font-weight:600;color:var(--text-muted);font-family:'JetBrains Mono'">2</td>
+                <td>
+                  <div style="display:flex;flex-direction:column;gap:4px;width:150px">
+                     <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;font-family:'JetBrains Mono'"><span style="color:var(--text-primary)">Rp 180Jt</span> <span style="color:var(--text-muted)">/ Rp 350Jt</span></div>
+                     <div style="height:6px;background:var(--primary-light);border-radius:4px;overflow:hidden"><div style="height:100%;width:51%;background:#D97706"></div></div>
+                  </div>
+                </td>
+                <td><span style="background:#FFFBEB;color:#D97706;font-weight:700;font-size:11px;padding:2px 8px;border-radius:10px">8 / 11 (73%)</span></td>
+                <td style="font-weight:700;color:#D97706">12.5% <span style="font-size:10px">(Sedang)</span></td>
+              </tr>
+              <!-- Totals row -->
+              <tr style="background:#F8FAFC;font-weight:700">
+                <td colspan="2" style="text-align:right">TOTAL TIM:</td>
+                <td style="font-family:'JetBrains Mono'">78</td>
+                <td style="color:#16A34A;font-family:'JetBrains Mono'">11</td>
+                <td style="color:var(--text-muted);font-family:'JetBrains Mono'">6</td>
+                <td style="font-family:'JetBrains Mono'">Rp 725Jt / Rp 1.15M</td>
+                <td>31 / 37 (83%)</td>
+                <td style="color:var(--primary)">14.0%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    // Chart.js Configuration
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748B';
+
+    // Revenue Chart (Bar)
+    const revCtx = document.getElementById('revChart').getContext('2d');
+    new Chart(revCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Siti Nurhaliza', 'Andi Kurniawan', 'Rizky Dwi'],
+        datasets: [
+          {
+            label: 'Capaian (Juta Rp)',
+            data: [260, 285, 180],
+            backgroundColor: '#3B5BDB',
+            borderRadius: 6,
+            barPercentage: 0.6
+          },
+          {
+            label: 'Target (Juta Rp)',
+            data: [400, 400, 350],
+            backgroundColor: '#E2E8F0',
+            borderRadius: 6,
+            barPercentage: 0.6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: '#F1F5F9' }, ticks: { callback: function(value){ return 'Rp' + value; } } }
+        }
+      }
+    });
+
+    // Conversion Doughnut Chart
+    const convCtx = document.getElementById('conversionChart').getContext('2d');
+    new Chart(convCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Hot', 'Warm', 'Cold', 'Converted'],
+        datasets: [{
+          data: [18, 25, 16, 11],
+          backgroundColor: ['#DC2626', '#D97706', '#94A3B8', '#16A34A'],
+          borderWidth: 0,
+          cutout: '75%'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } }
+      }
+    });
+  </script>
+</body>
+</html>

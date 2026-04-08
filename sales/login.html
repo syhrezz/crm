@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NexaCRM — Masuk ke Akun Anda</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #3B5BDB;
+            --primary-light: #EEF2FF;
+            --primary-dark: #2F4AC7;
+            --success: #0E9F6E;
+            --warning: #E3A008;
+            --danger: #F05252;
+            --surface: #F8FAFC;
+            --card: #FFFFFF;
+            --border: #E2E8F0;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #fff; color: var(--text-primary); overflow: hidden; height: 100vh; display: flex; }
+
+        /* SPLIT LAYOUT */
+        .login-left { width: 55%; background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 60px; color: #fff; }
+        .login-right { width: 45%; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; position: relative; z-index: 10; }
+
+        /* LEFT SIDE BRANDING & DECORATION */
+        .brand-logo { display: flex; align-items: center; gap: 12px; position: absolute; top: 40px; left: 60px; z-index: 20;}
+        .logo-icon { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), #7C3AED); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: #fff; box-shadow: 0 8px 24px rgba(59, 91, 219, 0.4);}
+        .logo-text { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        
+        .hero-text { position: relative; z-index: 20; max-width: 500px; margin-top: 60px;}
+        .hero-title { font-size: 46px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; margin-bottom: 20px; background: linear-gradient(to right, #fff, #A5B4FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+        .hero-desc { font-size: 16px; color: #94A3B8; line-height: 1.6; font-weight: 400;}
+
+        /* ABSTRACT ORBS */
+        .orb-1 { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59,91,219,0.15) 0%, rgba(59,91,219,0) 70%); top: -100px; right: -100px; border-radius: 50%; filter: blur(40px); animation: float 10s ease-in-out infinite;}
+        .orb-2 { position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, rgba(124,58,237,0) 70%); bottom: -100px; left: -100px; border-radius: 50%; filter: blur(40px); animation: float 14s ease-in-out infinite reverse;}
+
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-30px) scale(1.05); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+
+        /* GLASS MOCKUP */
+        .glass-mockup { position: absolute; right: -80px; top: 50%; transform: translateY(-50%); width: 500px; height: 340px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 24px; box-shadow: 0 24px 48px rgba(0,0,0,0.4); z-index: 10; display: flex; flex-direction: column; gap: 16px;}
+        .glass-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;}
+        .glass-shimmer { background: rgba(255, 255, 255, 0.1); border-radius: 8px; height: 12px; }
+        .glass-card { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.05);}
+        .glass-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3B5BDB, #7C3AED); opacity: 0.8;}
+
+        /* RIGHT SIDE FORM */
+        .login-box { width: 100%; max-width: 400px; }
+        .login-box-header { margin-bottom: 32px; text-align: center;}
+        .login-box-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary); margin-bottom: 8px;}
+        .login-box-sub { font-size: 14px; color: var(--text-secondary); }
+
+        .form-group { margin-bottom: 20px; text-align: left; position: relative;}
+        .form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px;}
+        .form-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); font-size: 14px; font-family: inherit; color: var(--text-primary); transition: all 0.2s; outline: none; background: var(--surface); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);}
+        .form-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(59, 91, 219, 0.1), inset 0 2px 4px rgba(0,0,0,0.01); }
+
+        .eye-toggle { position: absolute; right: 16px; top: 38px; cursor: pointer; color: var(--text-muted); transition: color 0.2s;}
+        .eye-toggle:hover { color: var(--text-primary); }
+
+        .input-icon { position: absolute; left: 16px; top: 38px; color: var(--text-muted); pointer-events: none;}
+        .input-with-icon { padding-left: 44px; }
+
+        .btn-primary { width: 100%; padding: 14px; border-radius: 12px; background: var(--primary); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: inherit; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 91, 219, 0.25);}
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(59, 91, 219, 0.35); }
+
+        /* CHECKBOX / LINKS */
+        .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; margin-top: 8px;}
+        
+        .checkbox-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .custom-checkbox { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; background: #fff; transition: all 0.2s; }
+        .checkbox-wrap input { display: none; }
+        .checkbox-wrap input:checked + .custom-checkbox { background: var(--primary); border-color: var(--primary); }
+        .checkbox-wrap input:checked + .custom-checkbox::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 800;}
+        .checkbox-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); user-select: none;}
+
+        .forgot-link { font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; transition: color 0.2s;}
+        .forgot-link:hover { color: var(--primary-dark); text-decoration: underline; }
+
+        .footer-text { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 40px; position: absolute; bottom: 40px;}
+
+        /* ANIMATIONS */
+        .fade-in { opacity: 0; animation: fadeIn 0.8s ease forwards;}
+        .slide-in { opacity: 0; transform: translateX(20px); animation: slideIn 0.5s ease forwards; }
+        .d1 { animation-delay: 0.1s;}
+        .d2 { animation-delay: 0.2s;}
+        .d3 { animation-delay: 0.3s;}
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .login-left { display: none; }
+            .login-right { width: 100%; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LEFT PANE: Visual Presentation -->
+    <div class="login-left fade-in">
+        <div class="orb-1"></div>
+        <div class="orb-2"></div>
+
+        <div class="brand-logo">
+            <div class="logo-icon">N</div>
+            <div class="logo-text">NexaCRM</div>
+        </div>
+
+        <div class="hero-text">
+            <h1 class="hero-title">Tingkatkan Performa Penjualan B2B Anda.</h1>
+            <p class="hero-desc">Platform cerdas untuk mengelola prospek, melacak pipeline, dan mempercepat proses closing. Dirancang khusus untuk tim sales modern.</p>
+        </div>
+
+        <div class="glass-mockup">
+            <div class="glass-header">
+                <div class="glass-shimmer" style="width: 120px;"></div>
+                <div style="display:flex; gap:6px;">
+                    <div style="width:8px;height:8px;border-radius:50%;background:#F05252"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#E3A008"></div>
+                    <div style="width:8px;height:8px;border-radius:50%;background:#0E9F6E"></div>
+                </div>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:10px;">
+                <div class="glass-card">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <div class="glass-circle"></div>
+                        <div>
+                            <div class="glass-shimmer" style="width:80px; margin-bottom:6px;"></div>
+                            <div class="glass-shimmer" style="width:40px; height:8px; opacity:0.5;"></div>
+                        </div>
+                    </div>
+                    <div class="glass-shimmer" style="width:100%; height:40px; margin-top:8px; opacity:0.3;"></div>
+                </div>
+                <div class="glass-card">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <div class="glass-circle" style="background: linear-gradient(135deg, #0694A2, #3B5BDB);"></div>
+                        <div>
+                            <div class="glass-shimmer" style="width:60px; margin-bottom:6px;"></div>
+                            <div class="glass-shimmer" style="width:50px; height:8px; opacity:0.5;"></div>
+                        </div>
+                    </div>
+                    <div class="glass-shimmer" style="width:100%; height:40px; margin-top:8px; opacity:0.3;"></div>
+                </div>
+            </div>
+            <div class="glass-card" style="flex:1;">
+                <div class="glass-shimmer" style="width:140px; margin-bottom:16px;"></div>
+                <div style="display:flex; align-items:flex-end; gap:8px; height:60px;">
+                    <div style="background:rgba(255,255,255,0.1); width:20%; height:30%; border-radius:4px 4px 0 0;"></div>
+                    <div style="background:rgba(255,255,255,0.2); width:20%; height:60%; border-radius:4px 4px 0 0;"></div>
+                    <div style="background:linear-gradient(to top, rgba(59,91,219,0.5), rgba(124,58,237,0.5)); width:20%; height:100%; border-radius:4px 4px 0 0;"></div>
+                    <div style="background:rgba(255,255,255,0.15); width:20%; height:50%; border-radius:4px 4px 0 0;"></div>
+                    <div style="background:rgba(255,255,255,0.1); width:20%; height:40%; border-radius:4px 4px 0 0;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANE: Authentication Form -->
+    <div class="login-right">
+        
+        <!-- Mobile only logo -->
+        <div style="display: none; align-items: center; gap: 8px; margin-bottom: 30px;" id="mobile-logo">
+            <div class="logo-icon" style="width: 32px; height: 32px; font-size: 16px;">N</div>
+            <div class="logo-text" style="color:var(--text-primary); font-size: 20px;">NexaCRM</div>
+        </div>
+
+        <div class="login-box slide-in">
+            <div class="login-box-header">
+                <h2 class="login-box-title">Selamat Datang</h2>
+                <p class="login-box-sub">Masuk dengan kredensial perusahaan Anda.</p>
+            </div>
+
+            <form action="index.html" onsubmit="handleLogin(event)">
+                <div class="form-group slide-in d1">
+                    <label class="form-label">Email Kerja</label>
+                    <svg class="input-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                    <input type="email" class="form-input input-with-icon" id="email" placeholder="nama@nexacrm.com" required value="rizky.dwi@nexacrm.com" />
+                </div>
+
+                <div class="form-group slide-in d2">
+                    <label class="form-label">Kata Sandi</label>
+                    <svg class="input-icon" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <input type="password" class="form-input input-with-icon" id="password" placeholder="••••••••" required value="password123" />
+                    <svg class="eye-toggle" onclick="togglePassword()" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                </div>
+
+                <div class="flex-between slide-in d2">
+                    <label class="checkbox-wrap">
+                        <input type="checkbox" checked />
+                        <div class="custom-checkbox"></div>
+                        <span class="checkbox-label">Ingat saya</span>
+                    </label>
+                    <a href="#" class="forgot-link">Lupa Kata Sandi?</a>
+                </div>
+
+                <button type="submit" class="btn-primary slide-in d3" id="loginBtn">
+                    Masuk ke Dashboard
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+        <div class="footer-text fade-in d3">
+            &copy; 2026 NexaCRM Inc. Hak cipta dilindungi undang-undang.
+        </div>
+    </div>
+
+    <script>
+        // Handle responsive logo
+        if(window.innerWidth <= 900) {
+            document.getElementById('mobile-logo').style.display = 'flex';
+        }
+
+        window.addEventListener('resize', () => {
+            if(window.innerWidth <= 900) {
+                document.getElementById('mobile-logo').style.display = 'flex';
+            } else {
+                document.getElementById('mobile-logo').style.display = 'none';
+            }
+        });
+
+        // Toggle Password Visibility
+        function togglePassword() {
+            const input = document.getElementById('password');
+            if(input.type === "password") {
+                input.type = "text";
+            } else {
+                input.type = "password";
+            }
+        }
+
+        // Handle Login Submission
+        function handleLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const originalContent = btn.innerHTML;
+            
+            // Simulating loading state
+            btn.innerHTML = `<svg style="animation: spin 1s linear infinite" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Menautkan kredensial...`;
+            btn.style.opacity = "0.8";
+            btn.style.pointerEvents = "none";
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 800);
+        }
+    </script>
+    <style>
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</body>
+
+</html>

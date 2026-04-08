@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Pencarian Prospek Supervisor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB; --primary-light: #EEF2FF; --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A; --sidebar-text: #94A3B8;
+      --success: #0E9F6E; --warning: #E3A008; --danger: #F05252;
+      --surface: #F8FAFC; --card: #FFFFFF; --border: #E2E8F0;
+      --text-primary: #0F172A; --text-secondary: #64748B; --text-muted: #94A3B8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--surface); color: var(--text-primary); overflow-x: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; transition: width .3s cubic-bezier(.4, 0, .2, 1); border-right: 1px solid rgba(255, 255, 255, .05); }
+    .sidebar.collapsed { width: 68px; }
+    .sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, .06); min-height: 64px; }
+    .logo-icon { width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; }
+    .logo-text { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.5px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .logo-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 500; letter-spacing: .5px; text-transform: uppercase; }
+    .sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub { opacity: 0; width: 0; }
+    .sidebar-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(148, 163, 184, .4); padding: 16px 20px 6px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .sidebar.collapsed .sidebar-section-label { opacity: 0; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; overflow-x: hidden; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .1); border-radius: 10px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--sidebar-text); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; margin-bottom: 2px; text-decoration: none; position: relative; }
+    .nav-item:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(14, 159, 110, .25), rgba(59, 91, 219, .2)); color: #fff; box-shadow: inset 0 0 0 1px rgba(14, 159, 110, .35); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #0E9F6E; border-radius: 0 4px 4px 0; }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: .8; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-label { transition: opacity .2s; }
+    .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+    .nav-badge { margin-left: auto; background: #F05252; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; flex-shrink: 0; transition: opacity .2s; }
+    .nav-badge.green { background: #0E9F6E; }
+    .sidebar.collapsed .nav-badge { opacity: 0; }
+    .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255, 255, 255, .06); }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; overflow: hidden; }
+    .user-card:hover { background: rgba(255, 255, 255, .06); }
+    .user-avatar { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+    .user-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; }
+    .user-role-label { font-size: 11px; color: var(--sidebar-text); white-space: nowrap; }
+    .sidebar.collapsed .user-info { opacity: 0; width: 0; }
+
+    /* ── TOPBAR ── */
+    .topbar { position: fixed; left: 260px; top: 0; right: 0; height: 64px; background: rgba(248, 250, 252, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 90; transition: left .3s cubic-bezier(.4, 0, .2, 1); }
+    .topbar.expanded { left: 68px; }
+    .toggle-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+    .toggle-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .breadcrumb span { font-size: 13px; color: var(--text-secondary); }
+    .breadcrumb .current { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; position: relative; }
+    .icon-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .notif-dot { position: absolute; top: 7px; right: 7px; width: 8px; height: 8px; background: #F05252; border-radius: 50%; border: 2px solid #fff; }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; border: 1px solid transparent; }
+    .topbar-user:hover { background: #fff; border-color: var(--border); }
+    .topbar-avatar { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #0E9F6E, #3B5BDB); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .topbar-uname { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-urole { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 260px; padding-top: 64px; min-height: 100vh; transition: margin-left .3s cubic-bezier(.4, 0, .2, 1); }
+    .main.expanded { margin-left: 68px; }
+    .content { padding: 28px; }
+
+    /* ── SEARCH UI ── */
+    .search-hero { background: var(--primary-dark); color: #fff; padding: 40px; border-radius: 14px; margin-bottom: 24px; text-align: center; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" opacity="0.05"><defs><pattern id="p" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="2" fill="%23fff"/></pattern></defs><rect width="100%" height="100%" fill="url(%23p)"/></svg>'); background-size: cover; position: relative; }
+    
+    .search-box-container { max-width: 600px; margin: 0 auto; position: relative; z-index: 2; }
+    .big-search-input { width: 100%; padding: 18px 24px 18px 54px; border-radius: 12px; border: none; font-size: 16px; font-family: inherit; font-weight: 500; color: var(--text-primary); box-shadow: 0 10px 25px rgba(0,0,0,.15); outline: none; }
+    .big-search-input:focus { box-shadow: 0 0 0 4px rgba(59, 91, 219, .3); }
+    .search-icon-big { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    .search-filters { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .filter-select { padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); font-size: 13px; font-family: inherit; outline: none; appearance: none; background: rgba(255,255,255,.1); color: #fff; cursor: pointer; text-align: center; }
+    .filter-select option { color: var(--text-primary); }
+
+    /* ── RESULTS ── */
+    .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+
+    .result-group { margin-bottom: 20px; }
+    .result-header { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    
+    .result-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; transition: all .2s; background: #fff; cursor: pointer; }
+    .result-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,.04); transform: translateY(-1px); }
+
+    .res-info { display: flex; gap: 14px; align-items: center; }
+    .res-avatar { width: 42px; height: 42px; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--primary); flex-shrink: 0; }
+    
+    .res-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+    .res-sub { font-size: 12px; color: var(--text-secondary); }
+    .highlight { background: #FEF08A; padding: 0 2px; border-radius: 2px; }
+
+    .res-meta { text-align: right; }
+    .res-sales { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 4px 8px; background: #F8FAFC; border-radius: 6px; color: var(--text-secondary); border: 1px solid var(--border); }
+    .status-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-bottom: 6px; display: inline-block; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Supervisor</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <!-- (Standard sidebar content) -->
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="team.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label">Manajemen Sales</span>
+      </a>
+      <a href="search.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span class="nav-label">Pencarian Terpadu</span>
+      </a>
+      <!-- ... -->
+      <div class="sidebar-section-label" style="margin-top:8px">Akun</div>
+      <a href="profile.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span class="nav-label">Profil Saya</span>
+      </a>
+      <a href="../sales/help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Dashboard</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Pencarian</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-user">
+        <div class="topbar-avatar">DR</div>
+        <div>
+          <div class="topbar-uname">Dian Rahayu</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <div class="search-hero">
+        <h1 style="font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px">Pencarian Terpadu Supervisor</h1>
+        <p style="font-size:14px;opacity:0.9;margin-bottom:24px">Cari prospek, riwayat log, atau to-do di seluruh wilayah tim Anda.</p>
+        
+        <div class="search-box-container">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="search-icon-big"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" class="big-search-input" value="Apotek" placeholder="Ketik kata kunci..." />
+        </div>
+
+        <div class="search-filters">
+          <select class="filter-select">
+            <option>Semua Kategori</option>
+            <option>Prospek & Perusahaan</option>
+            <option>Aktivitas & Log</option>
+            <option>To-Do / Tugas</option>
+          </select>
+          <select class="filter-select">
+            <option>Semua Sales</option>
+            <option>Rizky Dwi</option>
+            <option>Andi Kurniawan</option>
+            <option>Siti Nurhaliza</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="padding:24px">
+        <div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;display:flex;justify-content:space-between">
+          <span>Menampilkan hasil pencarian untuk "<strong>Apotek</strong>" (3 ditemukan)</span>
+        </div>
+
+        <div class="result-group">
+          <div class="result-header">🏢 Prospek & Perusahaan</div>
+          
+          <!-- Item 1 -->
+          <div class="result-item" onclick="window.location.href='team.html'">
+            <div class="res-info">
+              <div class="res-avatar">💊</div>
+              <div>
+                <div class="res-title"><span class="highlight">Apotek</span> Maju Jaya</div>
+                <div class="res-sub">Surabaya Timur · PIC: Andi Kurniawan</div>
+              </div>
+            </div>
+            <div class="res-meta">
+              <div class="status-badge" style="background:#FEF9C3;color:#CA8A04">Warm</div>
+              <div class="res-sales">
+                <div style="width:14px;height:14px;border-radius:3px;background:#0E9F6E;display:inline-block"></div> Andi
+              </div>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="result-item" onclick="window.location.href='team.html'">
+            <div class="res-info">
+              <div class="res-avatar">💊</div>
+              <div>
+                <div class="res-title"><span class="highlight">Apotek</span> Sehat Mandiri</div>
+                <div class="res-sub">Surabaya Barat · PIC: Siti Nurhaliza</div>
+              </div>
+            </div>
+            <div class="res-meta">
+              <div class="status-badge" style="background:#DCFCE7;color:#16A34A">Terkonversi</div>
+              <div class="res-sales">
+                <div style="width:14px;height:14px;border-radius:3px;background:#7C3AED;display:inline-block"></div> Siti
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-group" style="margin-bottom:0">
+          <div class="result-header">📝 Riwayat Aktivitas & Log</div>
+          
+          <!-- Item 3 -->
+          <div class="result-item" onclick="window.location.href='team.html'">
+            <div class="res-info">
+              <div class="res-avatar" style="font-size:16px">📍</div>
+              <div>
+                <div class="res-title">Kunjungan ke <span class="highlight">Apotek</span> Sehat Mandiri</div>
+                <div class="res-sub">8 Hari yang lalu · "Pengenalan promo tensimeter baru."</div>
+              </div>
+            </div>
+            <div class="res-meta">
+              <div class="status-badge" style="background:#F1F5F9;color:#64748B">Aktivitas</div>
+              <div class="res-sales">
+                <div style="width:14px;height:14px;border-radius:3px;background:#7C3AED;display:inline-block"></div> Siti
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+  </script>
+</body>
+</html>

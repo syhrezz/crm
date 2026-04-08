@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Master Tipe Aktivitas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB; --primary-light: #EEF2FF; --primary-dark: #2F4AC7;
+      --sidebar-bg: #0C0F1A; --sidebar-text: #94A3B8;
+      --success: #0E9F6E; --warning: #E3A008; --danger: #F05252;
+      --surface: #F0F4FF; --card: #FFFFFF; --border: #E2E8F0;
+      --text-primary: #0F172A; --text-secondary: #64748B; --text-muted: #94A3B8;
+      --dir-accent: #6366F1;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--surface); color: var(--text-primary); overflow-x: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 268px; background: var(--sidebar-bg); display: flex; flex-direction: column; z-index: 100; transition: width .3s cubic-bezier(.4, 0, .2, 1); border-right: 1px solid rgba(255, 255, 255, .04); }
+    .sidebar.collapsed { width: 68px; }
+    .sidebar-logo { padding: 22px 20px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, .05); min-height: 68px; }
+    .logo-icon { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; background: linear-gradient(135deg, #6366F1, #8B5CF6); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,.4); }
+    .logo-text { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.5px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .logo-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+    .sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub { opacity: 0; width: 0; }
+    .sidebar-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(148, 163, 184, .35); padding: 16px 20px 6px; white-space: nowrap; overflow: hidden; transition: opacity .2s; }
+    .sidebar.collapsed .sidebar-section-label { opacity: 0; }
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 12px; overflow-x: hidden; }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .08); border-radius: 10px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--sidebar-text); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; margin-bottom: 2px; position: relative; text-decoration: none; }
+    .nav-item:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+    .nav-item.active { background: linear-gradient(135deg, rgba(99,102,241,.28), rgba(139,92,246,.18)); color: #fff; box-shadow: inset 0 0 0 1px rgba(99,102,241,.4); }
+    .nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; background: #6366F1; border-radius: 0 4px 4px 0; }
+    .nav-icon { width: 20px; height: 20px; flex-shrink: 0; opacity: .8; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-label { transition: opacity .2s; }
+    .sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+
+    /* ── TOPBAR ── */
+    .topbar { position: fixed; left: 268px; top: 0; right: 0; height: 68px; background: rgba(240, 244, 255, .92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; z-index: 90; transition: left .3s cubic-bezier(.4, 0, .2, 1); }
+    .topbar.expanded { left: 68px; }
+    .toggle-btn { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+    .toggle-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .breadcrumb span { font-size: 13px; color: var(--text-secondary); }
+    .breadcrumb .current { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .topbar-user { display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; border: 1px solid transparent; }
+    .topbar-user:hover { background: #fff; border-color: var(--border); }
+    .topbar-avatar { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #6366F1, #8B5CF6); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+    .topbar-uname { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 268px; padding-top: 68px; min-height: 100vh; transition: margin-left .3s cubic-bezier(.4, 0, .2, 1); }
+    .main.expanded { margin-left: 68px; }
+    .content { padding: 28px; max-width: 900px; margin: 0 auto; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all .2s; border: none; text-decoration: none; }
+    .btn-primary { background: var(--dir-accent); color: #fff; box-shadow: 0 1px 3px rgba(99,102,241,.3); }
+    .btn-primary:hover { background: #4F46E5; transform: translateY(-1px); }
+    .btn-outline { background: #fff; color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--dir-accent); color: var(--dir-accent); background: #EEF2FF; }
+
+    /* FILTERS */
+    .filter-bar { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; display: flex; gap: 16px; align-items: flex-end; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .filter-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+    .filter-input { padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: inherit; outline: none; background: #F8FAFC; color: var(--text-primary); transition: all .2s; width: 100%; }
+    .filter-input:focus { background: #fff; border-color: var(--dir-accent); box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+
+    /* TABLE */
+    .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    thead th { padding: 14px 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-secondary); background: #F8FAFC; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #FAFBFF; }
+    tbody td { padding: 16px 20px; font-size: 13px; color: var(--text-primary); vertical-align: middle; }
+
+    .action-group { display: flex; gap: 8px; }
+    .btn-action { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: #fff; cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center; }
+    .btn-action:hover { border-color: var(--dir-accent); color: var(--dir-accent); }
+    .btn-action.del:hover { border-color: #DC2626; color: #DC2626; background: #FEF2F2; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.6); backdrop-filter: blur(4px); z-index: 999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity .2s; padding: 20px; }
+    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal { background: #fff; width: 100%; max-width: 500px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); transform: translateY(20px); transition: transform .3s cubic-bezier(.4,0,.2,1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; }
+    .modal-title { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+    .modal-close { cursor: pointer; color: var(--text-muted); transition: color .2s; }
+    .modal-close:hover { color: var(--danger); }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: #F8FAFC; }
+
+    .src-icon { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; background:var(--primary-light); color:var(--primary); border-radius:6px; margin-right:8px; font-size:14px; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Direktur</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="../index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="nav-label">Executive Dashboard</span>
+      </a>
+      <a href="../reports.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="nav-label">Laporan</span>
+      </a>
+      
+      <div class="sidebar-section-label" style="margin-top:6px">Administrasi</div>
+      <a href="../users.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        <span class="nav-label">Manajemen Pengguna</span>
+      </a>
+      <a href="../master-data.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        <span class="nav-label">Master Data</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- TOPBAR -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Administrasi</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <a href="../master-data.html" style="color:var(--text-secondary);text-decoration:none">Master Data</a>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Tipe Aktivitas</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-user">
+        <div class="topbar-avatar">HS</div>
+        <div class="topbar-uname">Hendra Saputra</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px">
+        <div>
+          <h1 style="font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary)">Direktori Tipe Aktivitas</h1>
+          <p style="font-size:14px;color:var(--text-secondary);margin-top:4px">Kelola format tindakan yang dapat dilakukan Sales untuk followup prospek.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="openModal()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Tambah Tipe
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Jenis Aktivitas</th>
+                <th>Verifikasi GPS Lokal</th>
+                <th>Status</th>
+                <th>Deskripsi</th>
+                <th style="width:100px;text-align:center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;">
+                  <span class="src-icon">📍</span> Field Visit
+                </td>
+                <td><span style="font-size:11px;font-weight:700;background:#FEF3C7;color:#B45309;padding:3px 8px;border-radius:12px">Wajib Diaktifkan</span></td>
+                <td><span style="font-size:11px;font-weight:700;background:#D1FAE5;color:#047857;padding:3px 8px;border-radius:12px">Aktif</span></td>
+                <td><span style="font-size:12px;color:var(--text-secondary)">Kunjungan langsung ke alamat prospek.</span></td>
+                <td>
+                  <div class="action-group" style="justify-content:center">
+                    <button class="btn-action" title="Edit">✎</button>
+                    <button class="btn-action del" title="Hapus">✕</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;">
+                  <span class="src-icon">📞</span> Phone Call
+                </td>
+                <td><span style="font-size:11px;font-weight:700;background:#F1F5F9;color:#64748B;padding:3px 8px;border-radius:12px">Tidak Perlu</span></td>
+                <td><span style="font-size:11px;font-weight:700;background:#D1FAE5;color:#047857;padding:3px 8px;border-radius:12px">Aktif</span></td>
+                <td><span style="font-size:12px;color:var(--text-secondary)">Telfon via GSM / Landline.</span></td>
+                <td>
+                  <div class="action-group" style="justify-content:center">
+                    <button class="btn-action" title="Edit">✎</button>
+                    <button class="btn-action del" title="Hapus">✕</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;">
+                  <span class="src-icon">💬</span> WhatsApp
+                </td>
+                <td><span style="font-size:11px;font-weight:700;background:#F1F5F9;color:#64748B;padding:3px 8px;border-radius:12px">Tidak Perlu</span></td>
+                <td><span style="font-size:11px;font-weight:700;background:#D1FAE5;color:#047857;padding:3px 8px;border-radius:12px">Aktif</span></td>
+                <td><span style="font-size:12px;color:var(--text-secondary)">Chat digital dengan Prospek.</span></td>
+                <td>
+                  <div class="action-group" style="justify-content:center">
+                    <button class="btn-action" title="Edit">✎</button>
+                    <button class="btn-action del" title="Hapus">✕</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:var(--text-primary);display:flex;align-items:center;">
+                  <span class="src-icon">🎥</span> Zoom/Google Meet
+                </td>
+                <td><span style="font-size:11px;font-weight:700;background:#F1F5F9;color:#64748B;padding:3px 8px;border-radius:12px">Tidak Perlu</span></td>
+                <td><span style="font-size:11px;font-weight:700;background:#D1FAE5;color:#047857;padding:3px 8px;border-radius:12px">Aktif</span></td>
+                <td><span style="font-size:12px;color:var(--text-secondary)">Meeting tatap muka secara virtual.</span></td>
+                <td>
+                  <div class="action-group" style="justify-content:center">
+                    <button class="btn-action" title="Edit">✎</button>
+                    <button class="btn-action del" title="Hapus">✕</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL ADD ACTIVITY TYPE -->
+  <div class="modal-overlay" id="srcModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Data Tipe Aktivitas</div>
+        <svg class="modal-close" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" onclick="closeModal()"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px;display:flex;gap:16px;">
+          <div style="flex:1">
+            <label class="filter-label">Tipe Layanan (Name)*</label>
+            <input type="text" class="filter-input" placeholder="Misal: Presentasi Produk" />
+          </div>
+          <div style="width:120px">
+            <label class="filter-label">Icon (Emoji)*</label>
+            <input type="text" class="filter-input" placeholder="📊" style="text-align:center;font-size:18px"/>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;display:flex;gap:16px;">
+          <div style="flex:1">
+            <label class="filter-label">Wajib Verifikasi GPS?</label>
+            <select class="filter-input">
+              <option>Tidak Perlu</option>
+              <option>Ya, Wajib (Cocok untuk Visit)</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label class="filter-label">Status Terlihat</label>
+            <select class="filter-input">
+              <option>Aktif</option>
+              <option>Non-Aktif (Hidden)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="filter-label">Deskripsi Tambahan</label>
+          <textarea class="filter-input" rows="3" placeholder="Jelaskan penggunaan kategori aktivitas ini..." style="resize:vertical"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" onclick="alert('Tipe Aktivitas berhasil disimpan.'); closeModal()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    const modal = document.getElementById('srcModal');
+    function openModal() { modal.classList.add('show'); }
+    function closeModal() { modal.classList.remove('show'); }
+  </script>
+</body>
+</html>

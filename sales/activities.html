@@ -1,0 +1,2581 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Aktivitas</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB;
+      --primary-light: #EEF2FF;
+      --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A;
+      --sidebar-text: #94A3B8;
+      --success: #0E9F6E;
+      --warning: #E3A008;
+      --danger: #F05252;
+      --surface: #F8FAFC;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+      /* activity type colors */
+      --c-visit: #0E9F6E;
+      --c-call: #3B5BDB;
+      --c-wa: #16A34A;
+      --c-email: #D97706;
+      --c-meeting: #7C3AED;
+      --c-demo: #0694A2;
+      /* todo colors */
+      --c-todo: #F05252;
+      --c-agenda: #E3A008;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--surface);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: width .3s cubic-bezier(.4, 0, .2, 1);
+      border-right: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .sidebar.collapsed {
+      width: 68px;
+    }
+
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      min-height: 64px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .logo-text {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--sidebar-text);
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .logo-sub {
+      opacity: 0;
+      width: 0;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, .4);
+      padding: 16px 20px 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .sidebar-section-label {
+      opacity: 0;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      overflow-x: hidden;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      margin-bottom: 2px;
+      position: relative;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, .06);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(59, 91, 219, .3), rgba(124, 58, 237, .2));
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(59, 91, 219, .4);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: var(--primary);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      opacity: .8;
+    }
+
+    .nav-item.active .nav-icon {
+      opacity: 1;
+    }
+
+    .nav-label {
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-label {
+      opacity: 0;
+      width: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: #F05252;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-badge {
+      opacity: 0;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      overflow: hidden;
+    }
+
+    .user-card:hover {
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--sidebar-text);
+      white-space: nowrap;
+    }
+
+    .sidebar.collapsed .user-info {
+      opacity: 0;
+      width: 0;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: fixed;
+      left: 260px;
+      top: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(248, 250, 252, .92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      z-index: 90;
+      transition: left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .topbar.expanded {
+      left: 68px;
+    }
+
+    .toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .breadcrumb span {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb .current {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 38px;
+      width: 240px;
+      transition: all .2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 8px;
+      height: 8px;
+      background: #F05252;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid transparent;
+    }
+
+    .topbar-user:hover {
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .topbar-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .topbar-uname {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .topbar-urole {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: 260px;
+      padding-top: 64px;
+      min-height: 100vh;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .main.expanded {
+      margin-left: 68px;
+    }
+
+    .content {
+      padding: 28px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(59, 91, 219, .3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(59, 91, 219, .35);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn-xs {
+      padding: 5px 10px;
+      font-size: 11px;
+      border-radius: 7px;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+    }
+
+    .btn-ghost:hover {
+      background: #F1F5F9;
+      color: var(--text-primary);
+    }
+
+    /* ── VIEW TOGGLE ── */
+    .view-toggle {
+      display: flex;
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 3px;
+    }
+
+    .vt-btn {
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .2s;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: inherit;
+    }
+
+    .vt-btn.active {
+      background: #fff;
+      color: var(--text-primary);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+    }
+
+    /* ── LEGEND ── */
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ── CALENDAR ── */
+    .cal-wrap {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+    }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cal-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+    }
+
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cal-nav-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all .2s;
+      color: var(--text-secondary);
+    }
+
+    .cal-nav-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .cal-today-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .cal-today-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* ── MONTH VIEW ── */
+    .cal-grid-head {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #F8FAFC;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cal-day-name {
+      padding: 10px 0;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+    }
+
+    .cal-day-name.weekend {
+      color: var(--danger);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .cal-cell {
+      min-height: 110px;
+      border-right: 1px solid #F1F5F9;
+      border-bottom: 1px solid #F1F5F9;
+      padding: 8px 6px 6px;
+      position: relative;
+      transition: background .15s;
+      cursor: pointer;
+    }
+
+    .cal-cell:nth-child(7n) {
+      border-right: none;
+    }
+
+    .cal-cell:hover {
+      background: #FAFBFF;
+    }
+
+    .cal-cell.other-month {
+      background: #FAFBFF;
+    }
+
+    .cal-cell.other-month .cal-date-num {
+      color: var(--text-muted);
+    }
+
+    .cal-cell.today {
+      background: #EEF2FF;
+    }
+
+    .cal-cell.today .cal-date-num {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+    }
+
+    .cal-cell.selected {
+      background: #EEF2FF;
+      outline: 2px solid var(--primary);
+      outline-offset: -1px;
+    }
+
+    .cal-date-num {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      flex-shrink: 0;
+      border-radius: 50%;
+    }
+
+    .cal-event {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 5px;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: opacity .15s;
+      display: block;
+    }
+
+    .cal-event:hover {
+      opacity: .8;
+    }
+
+    .cal-more {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 1px 4px;
+    }
+
+    /* event type colors */
+    .ev-visit {
+      background: rgba(14, 159, 110, .15);
+      color: #0E9F6E;
+    }
+
+    .ev-call {
+      background: rgba(59, 91, 219, .15);
+      color: #3B5BDB;
+    }
+
+    .ev-wa {
+      background: rgba(22, 163, 74, .15);
+      color: #16A34A;
+    }
+
+    .ev-email {
+      background: rgba(217, 119, 6, .15);
+      color: #D97706;
+    }
+
+    .ev-meeting {
+      background: rgba(124, 58, 237, .15);
+      color: #7C3AED;
+    }
+
+    .ev-demo {
+      background: rgba(6, 148, 162, .15);
+      color: #0694A2;
+    }
+
+    .ev-todo {
+      background: rgba(240, 82, 82, .15);
+      color: #F05252;
+    }
+
+    .ev-agenda {
+      background: rgba(227, 160, 8, .15);
+      color: #D97706;
+    }
+
+    /* ── WEEK VIEW ── */
+    .week-grid {
+      display: grid;
+      grid-template-columns: 60px repeat(7, 1fr);
+    }
+
+    .week-time-col {
+      border-right: 1px solid var(--border);
+    }
+
+    .week-time-slot {
+      height: 56px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 4px 10px 0 0;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      border-bottom: 1px solid #F8FAFC;
+    }
+
+    .week-day-col {
+      border-right: 1px solid #F1F5F9;
+      min-height: 560px;
+      position: relative;
+    }
+
+    .week-day-col:last-child {
+      border-right: none;
+    }
+
+    .week-day-header {
+      padding: 10px 8px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: #F8FAFC;
+    }
+
+    .week-day-name {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-secondary);
+    }
+
+    .week-day-num {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .week-day-num.today {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .week-event {
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      border-radius: 7px;
+      padding: 4px 7px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      overflow: hidden;
+      transition: opacity .15s;
+      z-index: 2;
+    }
+
+    .week-event:hover {
+      opacity: .85;
+    }
+
+    .week-slot-row {
+      height: 56px;
+      border-bottom: 1px solid #F8FAFC;
+      position: relative;
+    }
+
+    .week-current-time {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #F05252;
+      z-index: 3;
+    }
+
+    .week-current-time::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #F05252;
+    }
+
+    /* ── LIST VIEW ── */
+    .list-day-group {
+      margin-bottom: 20px;
+    }
+
+    .list-day-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      padding: 8px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .list-day-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .list-day-label.today-label {
+      color: var(--primary);
+    }
+
+    .list-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .list-item:hover {
+      border-color: rgba(59, 91, 219, .2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+      transform: translateX(2px);
+    }
+
+    .list-item.overdue {
+      border-color: #FECACA;
+      background: #FEF2F2;
+    }
+
+    .list-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .list-body {
+      flex: 1;
+    }
+
+    .list-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .list-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .list-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .list-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .list-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .lbg-visit {
+      background: rgba(14, 159, 110, .12);
+      color: #0E9F6E;
+    }
+
+    .lbg-call {
+      background: rgba(59, 91, 219, .12);
+      color: #3B5BDB;
+    }
+
+    .lbg-wa {
+      background: rgba(22, 163, 74, .12);
+      color: #16A34A;
+    }
+
+    .lbg-email {
+      background: rgba(217, 119, 6, .12);
+      color: #D97706;
+    }
+
+    .lbg-meeting {
+      background: rgba(124, 58, 237, .12);
+      color: #7C3AED;
+    }
+
+    .lbg-demo {
+      background: rgba(6, 148, 162, .12);
+      color: #0694A2;
+    }
+
+    .lbg-todo {
+      background: rgba(240, 82, 82, .12);
+      color: #F05252;
+    }
+
+    .lbg-agenda {
+      background: rgba(227, 160, 8, .12);
+      color: #D97706;
+    }
+
+    /* ── DAY PANEL (slide from right) ── */
+    .day-panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .3);
+      z-index: 150;
+      opacity: 0;
+      transition: opacity .25s;
+      pointer-events: none;
+    }
+
+    .day-panel-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .day-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      height: 100vh;
+      width: 400px;
+      max-width: 96vw;
+      background: #fff;
+      z-index: 160;
+      box-shadow: -8px 0 40px rgba(0, 0, 0, .12);
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-panel.open {
+      transform: translateX(0);
+    }
+
+    .day-panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .day-panel-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+    }
+
+    .day-panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .dp-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-secondary);
+      transition: all .2s;
+    }
+
+    .dp-close:hover {
+      background: #FEF2F2;
+      border-color: #FECACA;
+      color: #DC2626;
+    }
+
+    .dp-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin: 14px 0 8px;
+    }
+
+    .dp-item {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .dp-item:hover {
+      border-color: rgba(59, 91, 219, .2);
+      background: #FAFBFF;
+    }
+
+    .dp-item.overdue {
+      background: #FEF2F2;
+      border-color: #FECACA;
+    }
+
+    .dp-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .dp-item-title {
+      font-size: 13px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .dp-item-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .4);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity .2s;
+      pointer-events: none;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 18px;
+      width: 560px;
+      max-width: 96vw;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, .18);
+      transform: scale(.96) translateY(12px);
+      transition: all .25s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 1;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.4px;
+    }
+
+    .modal-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text-secondary);
+      transition: all .2s;
+    }
+
+    .modal-close-btn:hover {
+      background: #FEF2F2;
+      border-color: #FECACA;
+      color: #DC2626;
+    }
+
+    .modal-body {
+      padding: 20px 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .form-label span {
+      color: #F05252;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      transition: all .2s;
+      outline: none;
+      background: #fff;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* ── GPS BOX ── */
+    .gps-box {
+      background: #F8FAFC;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .gps-box.ok {
+      background: #F0FDF4;
+      border-color: #BBF7D0;
+    }
+
+    .gps-box.near {
+      background: #FFFBEB;
+      border-color: #FDE68A;
+    }
+
+    .gps-box.fail {
+      background: #FEF2F2;
+      border-color: #FECACA;
+    }
+
+    .gps-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .gps-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .gps-key {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .gps-val {
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .gps-ok {
+      background: #F0FDF4;
+      color: #16A34A;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid #BBF7D0;
+    }
+
+    .gps-near {
+      background: #FFFBEB;
+      color: #D97706;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid #FDE68A;
+    }
+
+    .gps-fail {
+      background: #FEF2F2;
+      color: #DC2626;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid #FECACA;
+    }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .badge-hot {
+      background: #FEF2F2;
+      color: #DC2626;
+    }
+
+    .badge-hot::before {
+      background: #DC2626;
+    }
+
+    .badge-warm {
+      background: #FFFBEB;
+      color: #D97706;
+    }
+
+    .badge-warm::before {
+      background: #D97706;
+    }
+
+    .badge-cold {
+      background: #EFF6FF;
+      color: #2563EB;
+    }
+
+    .badge-cold::before {
+      background: #2563EB;
+    }
+
+    .pri-high {
+      background: #FEF2F2;
+      color: #DC2626;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .pri-med {
+      background: #FFFBEB;
+      color: #D97706;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .pri-low {
+      background: #F0FDF4;
+      color: #16A34A;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      min-width: 300px;
+      max-width: 380px;
+      animation: slideIn .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1
+      }
+    }
+
+    .toast-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .toast-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .toast-msg {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .toast-close {
+      margin-left: auto;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    /* ── MINI STATS ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+      transition: all .2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .07);
+    }
+
+    .stat-num {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    .stat-change {
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 7px;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .chg-up {
+      background: #F0FDF4;
+      color: #0E9F6E;
+    }
+
+    .chg-down {
+      background: #FEF2F2;
+      color: #F05252;
+    }
+
+    .fade-up {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp .4s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .d1 {
+      animation-delay: .05s
+    }
+
+    .d2 {
+      animation-delay: .1s
+    }
+
+    .d3 {
+      animation-delay: .15s
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 10px
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Sales</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span class="nav-label">Beranda</span>
+      </a>
+      <a href="prospect.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="nav-label">Prospek Saya</span>
+        <span class="nav-badge">24</span>
+      </a>
+      <a href="activities.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="nav-label">Aktivitas</span>
+      </a>
+      <a href="products.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <span class="nav-label">Produk</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Lainnya</div>
+      <a href="help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">RD</div>
+        <div class="user-info">
+          <div class="user-name">Rizky Dwi</div>
+          <div class="user-role">Sales · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════ TOPBAR ══════════ -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Beranda</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Aktivitas</span>
+    </div>
+    <div class="search-bar">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+        <circle cx="11" cy="11" r="8" stroke-width="2" />
+        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <input type="text" placeholder="Cari aktivitas, prospek…" />
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="showToast('info','Notifikasi','3 notifikasi belum dibaca')">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">RD</div>
+        <div>
+          <div class="topbar-uname">Rizky Dwi</div>
+          <div class="topbar-urole">Sales Rep</div>
+        </div>
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="margin-left:4px">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <!-- Page Header -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px" class="fade-up">
+        <div>
+          <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Aktivitas</h1>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">Jadwal, tindak lanjut, dan rencana
+            kegiatan Anda</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-outline" onclick="openTodoModal()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Tambah Tugas
+          </button>
+          <button class="btn btn-primary" onclick="openActivityModal()">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Catat Aktivitas
+          </button>
+        </div>
+      </div>
+
+      <!-- Mini Stats -->
+      <div class="stats-row fade-up d1">
+        <div class="stat-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div
+              style="width:36px;height:36px;border-radius:10px;background:#EEF2FF;display:flex;align-items:center;justify-content:center;color:var(--primary)">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Total Aktivitas</div>
+          </div>
+          <div class="stat-num">38</div>
+          <div class="stat-lbl">Bulan April 2026</div>
+          <span class="stat-change chg-up">↑ 6 vs bulan lalu</span>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div
+              style="width:36px;height:36px;border-radius:10px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;color:#0E9F6E">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Kunjungan</div>
+          </div>
+          <div class="stat-num">11</div>
+          <div class="stat-lbl">Terverifikasi GPS: 8</div>
+          <span class="stat-change chg-up">↑ 3 vs bulan lalu</span>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div
+              style="width:36px;height:36px;border-radius:10px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;color:#F05252">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Tugas Terlambat</div>
+          </div>
+          <div class="stat-num" style="color:#DC2626">3</div>
+          <div class="stat-lbl">Perlu ditindaklanjuti</div>
+          <span class="stat-change chg-down">⚠ supervisor notified</span>
+        </div>
+        <div class="stat-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div
+              style="width:36px;height:36px;border-radius:10px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;color:#E3A008">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary)">Agenda Hari Ini</div>
+          </div>
+          <div class="stat-num" style="color:#D97706">4</div>
+          <div class="stat-lbl">Terjadwal hari ini</div>
+          <span class="stat-change chg-up">2 selesai · 2 sisa</span>
+        </div>
+      </div>
+
+      <!-- Calendar Controls -->
+      <div class="cal-wrap fade-up d2">
+        <div class="cal-header">
+          <div class="cal-nav">
+            <button class="cal-nav-btn" onclick="prevPeriod()">‹</button>
+            <button class="cal-today-btn" onclick="goToday()">Hari Ini</button>
+            <button class="cal-nav-btn" onclick="nextPeriod()">›</button>
+          </div>
+          <div class="cal-title" id="calTitle">April 2026</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <!-- Legend -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#0E9F6E"></div>Kunjungan
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#3B5BDB"></div>Telepon
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#7C3AED"></div>Pertemuan
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#F05252"></div>To-Do
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#D97706"></div>Agenda
+              </div>
+            </div>
+            <!-- Filter toggle -->
+            <div
+              style="display:flex;gap:4px;background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:3px">
+              <button id="fl-act" class="btn-ghost"
+                style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"
+                onclick="toggleLayer('act',this)">Aktivitas</button>
+              <button id="fl-todo" class="btn-ghost"
+                style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"
+                onclick="toggleLayer('todo',this)">To-Do</button>
+              <button id="fl-agenda" class="btn-ghost"
+                style="font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)"
+                onclick="toggleLayer('agenda',this)">Agenda</button>
+            </div>
+            <!-- View toggle -->
+            <div class="view-toggle">
+              <button class="vt-btn active" id="vt-month" onclick="setView('month')">Bulan</button>
+              <button class="vt-btn" id="vt-week" onclick="setView('week')">Minggu</button>
+              <button class="vt-btn" id="vt-list" onclick="setView('list')">Daftar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MONTH VIEW -->
+        <div id="monthView">
+          <div class="cal-grid-head">
+            <div class="cal-day-name">Min</div>
+            <div class="cal-day-name">Sen</div>
+            <div class="cal-day-name">Sel</div>
+            <div class="cal-day-name">Rab</div>
+            <div class="cal-day-name">Kam</div>
+            <div class="cal-day-name">Jum</div>
+            <div class="cal-day-name weekend">Sab</div>
+          </div>
+          <div class="cal-grid" id="monthGrid"></div>
+        </div>
+
+        <!-- WEEK VIEW -->
+        <div id="weekView" style="display:none">
+          <div class="week-grid" id="weekGrid">
+            <div class="week-time-col" id="weekTimeCols"></div>
+            <!-- day columns injected by JS -->
+          </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="listView" style="display:none;padding:20px 24px" id="listViewContent">
+        </div>
+
+      </div><!-- /cal-wrap -->
+    </div>
+  </main>
+
+  <!-- DAY PANEL -->
+  <div class="day-panel-overlay" id="panelOverlay" onclick="closeDayPanel()"></div>
+  <div class="day-panel" id="dayPanel">
+    <div class="day-panel-header">
+      <div>
+        <div class="day-panel-title" id="panelDate">Rabu, 8 April 2026</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px" id="panelCount">4 item</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-primary btn-sm" onclick="openActivityModal()">+ Aktivitas</button>
+        <button class="dp-close" onclick="closeDayPanel()">×</button>
+      </div>
+    </div>
+    <div class="day-panel-body" id="dayPanelBody"></div>
+  </div>
+
+  <!-- ══════════ MODAL: CATAT AKTIVITAS ══════════ -->
+  <div class="modal-overlay" id="actModal" onclick="if(event.target===this)closeModal('actModal')">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Catat Aktivitas</div>
+        <button class="modal-close-btn" onclick="closeModal('actModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Prospek <span>*</span></label>
+          <select class="form-input form-select">
+            <option>-- Pilih Prospek --</option>
+            <option>PT Maju Abadi — Budi Santoso</option>
+            <option>Sari Dewi</option>
+            <option>CV Karya Mandiri — Andi Wijaya</option>
+            <option>PT Harapan Jaya — Surya Pratama</option>
+            <option>UD Mitra Usaha — Pak Heru</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tanggal & Waktu <span>*</span></label>
+            <input class="form-input" type="datetime-local" id="actDateTime" value="2026-04-08T09:00" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Jenis Aktivitas <span>*</span></label>
+            <select class="form-input form-select" id="actTypeSelect" onchange="handleActType(this)">
+              <option value="">-- Pilih Jenis --</option>
+              <option value="visit">Kunjungan (Wajib GPS)</option>
+              <option value="call">Telepon</option>
+              <option value="wa">WhatsApp</option>
+              <option value="email">Email</option>
+              <option value="meeting">Pertemuan</option>
+              <option value="demo">Demo Produk (Wajib GPS)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Platform</label>
+            <select class="form-input form-select">
+              <option>-- Tidak Ada --</option>
+              <option>Tatap Muka</option>
+              <option>WhatsApp</option>
+              <option>Telepon</option>
+              <option>Zoom</option>
+              <option>Google Meet</option>
+              <option>Email</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lampiran (Opsional)</label>
+            <input class="form-input" type="text" placeholder="Nama file, cth. proposal.pdf" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hasil / Catatan <span>*</span></label>
+          <textarea class="form-input" rows="3"
+            placeholder="Apa yang dibahas? Bagaimana respons klien? Apa hasilnya?"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Agenda Selanjutnya</label>
+            <input class="form-input" type="text" placeholder="cth. Kirim proposal resmi" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tanggal Agenda</label>
+            <input class="form-input" type="date" />
+          </div>
+        </div>
+        <!-- GPS Section -->
+        <div id="gpsSection" style="display:none">
+          <div style="height:1px;background:var(--border);margin:2px 0 14px"></div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            Verifikasi Lokasi GPS <span style="font-size:11px;font-weight:500;color:#DC2626">(Wajib)</span>
+          </div>
+          <div id="gpsIdle"
+            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px">
+            <div style="font-size:12px;color:var(--text-secondary)">Verifikasi bahwa Anda berada di lokasi prospek</div>
+            <button class="btn btn-primary btn-sm" onclick="doGPS()" style="display:flex;align-items:center;gap:4px;">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Verifikasi Lokasi
+            </button>
+          </div>
+          <div id="gpsLoading"
+            style="display:none;padding:14px 16px;background:#F8FAFC;border:1px solid var(--border);border-radius:10px;text-align:center;font-size:13px;color:var(--text-secondary)">
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Mengambil koordinat GPS Anda…
+            </div>
+          </div>
+          <div id="gpsResult" style="display:none">
+            <div class="gps-box ok" id="gpsBox">
+              <div class="gps-row"><span class="gps-key">Koordinat Saya</span><span class="gps-val">-7.2931,
+                  112.7349</span></div>
+              <div class="gps-row"><span class="gps-key">Koordinat Prospek</span><span class="gps-val">-7.2934,
+                  112.7346</span></div>
+              <div class="gps-row"><span class="gps-key">Jarak</span><span class="gps-val" id="gpsDist">42 meter</span>
+              </div>
+              <div class="gps-row"><span class="gps-key">Status</span><span id="gpsStatus"
+                  class="gps-ok">Terverifikasi</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('actModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveActivity()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Simpan Aktivitas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODAL: TAMBAH TUGAS ══════════ -->
+  <div class="modal-overlay" id="todoModal" onclick="if(event.target===this)closeModal('todoModal')">
+    <div class="modal" style="width:460px">
+      <div class="modal-header">
+        <div class="modal-title">Tambah Tugas</div>
+        <button class="modal-close-btn" onclick="closeModal('todoModal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Judul Tugas <span>*</span></label>
+          <input class="form-input" type="text" placeholder="cth. Kirim proposal ke PT Maju Abadi" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prospek Terkait</label>
+          <select class="form-input form-select">
+            <option>-- Pilih Prospek (Opsional) --</option>
+            <option>PT Maju Abadi</option>
+            <option>CV Karya Mandiri</option>
+            <option>Sari Dewi</option>
+            <option>PT Harapan Jaya</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Batas Waktu <span>*</span></label>
+            <input class="form-input" type="date" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prioritas <span>*</span></label>
+            <select class="form-input form-select">
+              <option>Tinggi</option>
+              <option>Sedang</option>
+              <option>Rendah</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Catatan</label>
+          <textarea class="form-input" rows="3" placeholder="Detail tugas yang perlu dilakukan…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('todoModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveTodo()">Simpan Tugas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // ══════════════════════════════════════════════
+    // DATA
+    // ══════════════════════════════════════════════
+    const YEAR = 2026, MONTH = 3; // April = index 3
+    const today = { y: 2026, m: 3, d: 8 };
+
+    // Events: type = visit|call|wa|email|meeting|demo|todo|agenda
+    const events = [
+      // April activities
+      { d: 1, type: 'visit', label: 'Kunjungan — PT Maju Abadi', time: '09:00', lead: 'PT Maju Abadi', gps: 'ok' },
+      { d: 1, type: 'todo', label: 'Demo presentasi produk', time: '17:00', lead: 'PT Maju Abadi', overdue: true },
+      { d: 2, type: 'call', label: 'Telepon — Sari Dewi', time: '10:30', lead: 'Sari Dewi' },
+      { d: 3, type: 'meeting', label: 'Pertemuan — CV Karya Mandiri', time: '14:00', lead: 'CV Karya Mandiri' },
+      { d: 4, type: 'todo', label: 'Kirim proposal CV Karya Mandiri', time: '', lead: 'CV Karya Mandiri', overdue: true },
+      { d: 5, type: 'wa', label: 'WhatsApp — PT Harapan Jaya', time: '11:00', lead: 'PT Harapan Jaya' },
+      { d: 6, type: 'wa', label: 'WhatsApp — Sari Dewi', time: '14:20', lead: 'Sari Dewi' },
+      { d: 7, type: 'call', label: 'Telepon — CV Karya Mandiri', time: '10:00', lead: 'CV Karya Mandiri' },
+      { d: 7, type: 'todo', label: 'Update status Hendra Gunawan', time: '', lead: 'Hendra Gunawan', overdue: true },
+      // today April 8
+      { d: 8, type: 'visit', label: 'Kunjungan — PT Maju Abadi', time: '09:15', lead: 'PT Maju Abadi', gps: 'ok' },
+      { d: 8, type: 'meeting', label: 'Pertemuan — UD Mitra Usaha', time: '13:00', lead: 'UD Mitra Usaha' },
+      { d: 8, type: 'todo', label: 'Kirim proposal PT Maju Abadi', time: '', lead: 'PT Maju Abadi' },
+      { d: 8, type: 'agenda', label: 'Tindak lanjut Sari Dewi — harga', time: '15:00', lead: 'Sari Dewi' },
+      // future
+      { d: 9, type: 'agenda', label: 'Follow-up Sari Dewi', time: '10:00', lead: 'Sari Dewi' },
+      { d: 9, type: 'call', label: 'Telepon — PT Harapan Jaya', time: '11:30', lead: 'PT Harapan Jaya' },
+      { d: 10, type: 'todo', label: 'Kirim jadwal demo — PT Maju Abadi', time: '', lead: 'PT Maju Abadi' },
+      { d: 11, type: 'visit', label: 'Kunjungan — CV Karya Mandiri', time: '10:00', lead: 'CV Karya Mandiri' },
+      { d: 12, type: 'demo', label: 'Demo Produk — UD Mitra Usaha', time: '14:00', lead: 'UD Mitra Usaha' },
+      { d: 14, type: 'meeting', label: 'Pertemuan — PT Harapan Jaya', time: '09:00', lead: 'PT Harapan Jaya' },
+      { d: 15, type: 'visit', label: 'Kunjungan pabrik bersama klien', time: '08:00', lead: 'PT Maju Abadi' },
+      { d: 15, type: 'agenda', label: 'Koordinasi kunjungan pabrik', time: '13:00', lead: 'PT Maju Abadi' },
+      { d: 17, type: 'call', label: 'Telepon — Dewi Kusuma', time: '10:00', lead: 'Dewi Kusuma' },
+      { d: 18, type: 'email', label: 'Email penawaran — Budi Setiawan', time: '09:00', lead: 'Budi Setiawan' },
+      { d: 20, type: 'visit', label: 'Kunjungan — PT Sejahtera', time: '10:00', lead: 'PT Sejahtera Bersama' },
+      { d: 22, type: 'meeting', label: 'Presentasi — PT Maju Abadi', time: '14:00', lead: 'PT Maju Abadi' },
+      { d: 24, type: 'todo', label: 'Rekap laporan bulanan', time: '', lead: null },
+      { d: 25, type: 'call', label: 'Telepon — Lina Marlina', time: '11:00', lead: 'Lina Marlina' },
+      { d: 28, type: 'visit', label: 'Kunjungan — CV Karya Mandiri', time: '09:00', lead: 'CV Karya Mandiri', gps: 'near' },
+      { d: 30, type: 'demo', label: 'Demo Final — PT Maju Abadi', time: '10:00', lead: 'PT Maju Abadi' },
+    ];
+
+    // type → display config
+    const typeConf = {
+      visit: { label: 'Kunjungan', evCls: 'ev-visit', lbgCls: 'lbg-visit', iconColor: '#0E9F6E', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`, iconBg: '#F0FDF4' },
+      call: { label: 'Telepon', evCls: 'ev-call', lbgCls: 'lbg-call', iconColor: '#3B5BDB', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>`, iconBg: '#EFF6FF' },
+      wa: { label: 'WhatsApp', evCls: 'ev-wa', lbgCls: 'lbg-wa', iconColor: '#16A34A', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>`, iconBg: '#F0FDF4' },
+      email: { label: 'Email', evCls: 'ev-email', lbgCls: 'lbg-email', iconColor: '#D97706', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`, iconBg: '#FFFBEB' },
+      meeting: { label: 'Pertemuan', evCls: 'ev-meeting', lbgCls: 'lbg-meeting', iconColor: '#7C3AED', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`, iconBg: '#F5F3FF' },
+      demo: { label: 'Demo', evCls: 'ev-demo', lbgCls: 'lbg-demo', iconColor: '#0694A2', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>`, iconBg: '#ECFEFF' },
+      todo: { label: 'Tugas', evCls: 'ev-todo', lbgCls: 'lbg-todo', iconColor: '#F05252', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`, iconBg: '#FEF2F2' },
+      agenda: { label: 'Agenda', evCls: 'ev-agenda', lbgCls: 'lbg-agenda', iconColor: '#E3A008', icon: `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`, iconBg: '#FFFBEB' },
+    };
+
+    // active layers
+    let layers = { act: true, todo: true, agenda: true };
+
+    function isVisible(ev) {
+      if (ev.type === 'todo') return layers.todo;
+      if (ev.type === 'agenda') return layers.agenda;
+      return layers.act;
+    }
+
+    // ══════════════════════════════════════════════
+    // CALENDAR STATE
+    // ══════════════════════════════════════════════
+    let curYear = YEAR, curMonth = MONTH, curView = 'month';
+    let selectedDay = today.d;
+
+    const DAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+    function getEventsForDay(d) {
+      return events.filter(e => e.d === d && isVisible(e));
+    }
+
+    // ══════════════════════════════════════════════
+    // MONTH VIEW
+    // ══════════════════════════════════════════════
+    function renderMonth() {
+      document.getElementById('calTitle').textContent = MONTHS_ID[curMonth] + ' ' + curYear;
+      const grid = document.getElementById('monthGrid');
+      const firstDay = new Date(curYear, curMonth, 1).getDay();
+      const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+      const daysInPrev = new Date(curYear, curMonth, 0).getDate();
+
+      let html = '';
+      let day = 1;
+      let nextDay = 1;
+      const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+      for (let i = 0; i < totalCells; i++) {
+        let cellDay, otherMonth = false;
+        if (i < firstDay) { cellDay = daysInPrev - firstDay + i + 1; otherMonth = true; }
+        else if (day > daysInMonth) { cellDay = nextDay++; otherMonth = true; }
+        else { cellDay = day++; }
+
+        const isToday = !otherMonth && cellDay === today.d && curMonth === today.m && curYear === today.y;
+        const isSelected = !otherMonth && cellDay === selectedDay && curMonth === today.m;
+        const dayEvs = otherMonth ? [] : getEventsForDay(cellDay);
+        const maxShow = 3;
+
+        let cls = 'cal-cell';
+        if (otherMonth) cls += ' other-month';
+        if (isToday) cls += ' today';
+        if (isSelected && !isToday) cls += ' selected';
+
+        let evHtml = dayEvs.slice(0, maxShow).map(ev => {
+          const c = typeConf[ev.type];
+          return `<span class="cal-event ${c.evCls}" onclick="event.stopPropagation();openDayPanel(${otherMonth ? 'null' : cellDay})">${ev.time ? ev.time + ' ' : ''}${ev.label}</span>`;
+        }).join('');
+        if (dayEvs.length > maxShow) evHtml += `<div class="cal-more">+${dayEvs.length - maxShow} lainnya</div>`;
+
+        html += `<div class="${cls}" onclick="${otherMonth ? '' : `selectDay(${cellDay})`}">
+      <div class="cal-date-num">${cellDay}</div>
+      ${evHtml}
+    </div>`;
+      }
+      grid.innerHTML = html;
+    }
+
+    function selectDay(d) {
+      selectedDay = d;
+      renderMonth();
+      openDayPanel(d);
+    }
+
+    // ══════════════════════════════════════════════
+    // WEEK VIEW
+    // ══════════════════════════════════════════════
+    function renderWeek() {
+      // Find Monday of the week containing selectedDay
+      const ref = new Date(curYear, curMonth, selectedDay);
+      const dow = ref.getDay(); // 0=Sun
+      const mondayOffset = dow === 0 ? -6 : 1 - dow;
+      const monday = new Date(ref);
+      monday.setDate(ref.getDate() + mondayOffset);
+
+      // Build title
+      const endSun = new Date(monday);
+      endSun.setDate(monday.getDate() + 6);
+      document.getElementById('calTitle').textContent =
+        `${monday.getDate()} – ${endSun.getDate()} ${MONTHS_ID[curMonth]} ${curYear}`;
+
+      const timeGrid = document.getElementById('weekTimeCols');
+      const wg = document.getElementById('weekGrid');
+
+      // Clear old day columns (keep timeCol)
+      wg.querySelectorAll('.week-day-col').forEach(el => el.remove());
+
+      // Time slots 07:00–19:00
+      const startHour = 7;
+      const endHour = 19;
+      const slots = endHour - startHour;
+
+      // Time column
+      let tHtml = '';
+      for (let h = startHour; h <= endHour; h++) {
+        tHtml += `<div class="week-time-slot">${h.toString().padStart(2, '0')}:00</div>`;
+      }
+      timeGrid.innerHTML = tHtml;
+
+      // Day columns
+      const colors = { visit: '#0E9F6E', call: '#3B5BDB', wa: '#16A34A', email: '#D97706', meeting: '#7C3AED', demo: '#0694A2', todo: '#F05252', agenda: '#E3A008' };
+      const lightColors = { visit: 'rgba(14,159,110,.15)', call: 'rgba(59,91,219,.15)', wa: 'rgba(22,163,74,.15)', email: 'rgba(217,119,6,.15)', meeting: 'rgba(124,58,237,.15)', demo: 'rgba(6,148,162,.15)', todo: 'rgba(240,82,82,.15)', agenda: 'rgba(227,160,8,.15)' };
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const dayNum = d.getDate();
+        const isToday = dayNum === today.d && d.getMonth() === today.m && d.getFullYear() === today.y;
+
+        const col = document.createElement('div');
+        col.className = 'week-day-col';
+        col.style.cssText = 'display:flex;flex-direction:column;';
+
+        // Header
+        const hdr = document.createElement('div');
+        hdr.className = 'week-day-header';
+        hdr.innerHTML = `<div class="week-day-name">${DAYS_ID[d.getDay()]}</div>
+      <div class="week-day-num${isToday ? ' today' : ''}">${dayNum}</div>`;
+        col.appendChild(hdr);
+
+        // Slots container
+        const slotWrap = document.createElement('div');
+        slotWrap.style.cssText = 'position:relative;flex:1;';
+
+        for (let s = 0; s <= slots; s++) {
+          const slot = document.createElement('div');
+          slot.className = 'week-slot-row';
+          slotWrap.appendChild(slot);
+        }
+
+        // Current time line (only today)
+        if (isToday) {
+          const now = new Date();
+          const pct = ((now.getHours() - startHour) * 60 + now.getMinutes()) / ((slots) * 60);
+          if (pct >= 0 && pct <= 1) {
+            const line = document.createElement('div');
+            line.className = 'week-current-time';
+            line.style.top = (pct * slots * 56) + 'px';
+            slotWrap.appendChild(line);
+          }
+        }
+
+        // Events
+        const dayEvs = d.getMonth() === curMonth ? getEventsForDay(dayNum) : [];
+        dayEvs.filter(e => e.time).forEach(ev => {
+          const [h, m] = ev.time.split(':').map(Number);
+          const topPx = ((h - startHour) * 60 + m) / 60 * 56;
+          const evEl = document.createElement('div');
+          evEl.className = 'week-event';
+          evEl.style.cssText = `top:${topPx}px;background:${lightColors[ev.type]};color:${colors[ev.type]};border-left:3px solid ${colors[ev.type]};`;
+          evEl.innerHTML = `<div style="font-size:10px;opacity:.8">${ev.time}</div><div style="line-height:1.3">${ev.label}</div>`;
+          evEl.onclick = () => showToast('info', typeConf[ev.type].label, ev.label + (ev.lead ? ' — ' + ev.lead : ''));
+          slotWrap.appendChild(evEl);
+        });
+
+        col.appendChild(slotWrap);
+        wg.appendChild(col);
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // LIST VIEW
+    // ══════════════════════════════════════════════
+    function renderList() {
+      document.getElementById('calTitle').textContent = MONTHS_ID[curMonth] + ' ' + curYear;
+      const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+      let html = '';
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const evs = getEventsForDay(d);
+        if (!evs.length) continue;
+
+        const isToday = d === today.d && curMonth === today.m;
+        const weekday = new Date(curYear, curMonth, d);
+        const wdName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][weekday.getDay()];
+        const dateStr = `${wdName}, ${d} ${MONTHS_ID[curMonth]} ${curYear}`;
+
+        html += `<div class="list-day-group">
+      <div class="list-day-label${isToday ? ' today-label' : ''}">${isToday ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' : ''}${dateStr}${isToday ? ' — Hari Ini' : ''}</div>`;
+
+        evs.forEach(ev => {
+          const c = typeConf[ev.type];
+          const gpsHtml = ev.gps === 'ok' ? '<span class="gps-ok">Terverifikasi</span>'
+            : ev.gps === 'near' ? '<span class="gps-near">Mendekati</span>'
+              : ev.gps === 'fail' ? '<span class="gps-fail">Di Luar Jangkauan</span>' : '';
+          html += `<div class="list-item${ev.overdue ? ' overdue' : ''}" onclick="showToast('info','${c.label}','${ev.label}')">
+        <div class="list-icon" style="background:${c.iconBg};color:${c.iconColor}">${c.icon}</div>
+        <div class="list-body">
+          <div class="list-title">${ev.label}</div>
+          ${ev.lead ? `<div class="list-sub">Prospek: ${ev.lead}</div>` : ''}
+          <div class="list-meta" style="align-items:center;">
+            ${ev.time ? `<span class="list-time" style="display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${ev.time}</span>` : ''}
+            <span class="list-badge ${c.lbgCls}">${c.label}</span>
+            ${ev.overdue ? '<span class="list-badge" style="background:#FEF2F2;color:#DC2626">Terlambat</span>' : ''}
+            ${gpsHtml}
+          </div>
+        </div>
+      </div>`;
+        });
+
+        html += '</div>';
+      }
+
+      document.getElementById('listView').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--text-muted)">Tidak ada aktivitas bulan ini</div>';
+    }
+
+    // ══════════════════════════════════════════════
+    // DAY PANEL
+    // ══════════════════════════════════════════════
+    function openDayPanel(d) {
+      if (!d) return;
+      selectedDay = d;
+      const evs = getEventsForDay(d);
+      const weekday = new Date(curYear, curMonth, d);
+      const wdName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][weekday.getDay()];
+      document.getElementById('panelDate').textContent = `${wdName}, ${d} ${MONTHS_ID[curMonth]} ${curYear}`;
+
+      const acts = evs.filter(e => e.type !== 'todo' && e.type !== 'agenda');
+      const todos = evs.filter(e => e.type === 'todo');
+      const agendas = evs.filter(e => e.type === 'agenda');
+      document.getElementById('panelCount').textContent = `${evs.length} item terjadwal`;
+
+      let html = '';
+
+      if (acts.length) {
+        html += '<div class="dp-section-title">Aktivitas</div>';
+        acts.forEach(ev => {
+          const c = typeConf[ev.type];
+          const gpsHtml = ev.gps === 'ok' ? '<span class="gps-ok" style="font-size:10px">GPS OK</span>'
+            : ev.gps === 'near' ? '<span class="gps-near" style="font-size:10px">Mendekati</span>'
+              : ev.gps === 'fail' ? '<span class="gps-fail" style="font-size:10px">Di Luar</span>' : '';
+          html += `<div class="dp-item" onclick="showToast('info','${c.label}','${ev.label}')">
+        <div class="dp-item-header">
+          <span style="display:flex;align-items:center;justify-content:center;color:${c.iconColor}">${c.icon}</span>
+          <div class="dp-item-title">${ev.label}</div>
+          <span class="list-badge ${c.lbgCls}">${c.label}</span>
+        </div>
+        <div class="dp-item-sub" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+          ${ev.time ? '<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> ' + ev.time : ''} 
+          ${ev.lead ? '· ' + ev.lead : ''}
+        </div>
+        ${gpsHtml ? `<div style="margin-top:5px">${gpsHtml}</div>` : ''}
+      </div>`;
+        });
+      }
+
+      if (agendas.length) {
+        html += '<div class="dp-section-title">Agenda / Tindak Lanjut</div>';
+        agendas.forEach(ev => {
+          html += `<div class="dp-item" onclick="showToast('info','Agenda','${ev.label}')">
+        <div class="dp-item-header">
+          <span style="display:flex;align-items:center;justify-content:center;color:#E3A008"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></span>
+          <div class="dp-item-title">${ev.label}</div>
+        </div>
+        <div class="dp-item-sub">${ev.time ? '⏰ ' + ev.time : ''} ${ev.lead ? '· ' + ev.lead : ''}</div>
+      </div>`;
+        });
+      }
+
+      if (todos.length) {
+        html += '<div class="dp-section-title">To-Do / Tugas</div>';
+        todos.forEach(ev => {
+          html += `<div class="dp-item${ev.overdue ? ' overdue' : ''}" onclick="showToast('${ev.overdue ? 'warning' : 'info'}','Tugas','${ev.label}')">
+        <div class="dp-item-header">
+          <span style="display:flex;align-items:center;justify-content:center;color:${ev.overdue ? '#DC2626' : '#10B981'}">
+            ${ev.overdue ? '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>' : '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'}
+          </span>
+          <div class="dp-item-title" style="${ev.overdue ? 'color:#DC2626' : ''}">${ev.label}</div>
+          ${ev.overdue ? '<span class="list-badge" style="background:#FEF2F2;color:#DC2626">Terlambat</span>' : ''}
+        </div>
+        <div class="dp-item-sub">${ev.lead ? '· ' + ev.lead : ''}</div>
+      </div>`;
+        });
+      }
+
+      if (!evs.length) {
+        html = `<div style="text-align:center;padding:40px;color:var(--text-muted)">
+      <div style="display:flex;justify-content:center;margin-bottom:10px;color:var(--text-muted)">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+      </div>
+      <div style="font-size:13px;font-weight:600">Tidak ada aktivitas</div>
+      <div style="font-size:12px;margin-top:4px">Klik tombol di atas untuk menambahkan</div>
+    </div>`;
+      }
+
+      document.getElementById('dayPanelBody').innerHTML = html;
+      document.getElementById('panelOverlay').classList.add('show');
+      document.getElementById('dayPanel').classList.add('open');
+    }
+    function closeDayPanel() {
+      document.getElementById('panelOverlay').classList.remove('show');
+      document.getElementById('dayPanel').classList.remove('open');
+    }
+
+    // ══════════════════════════════════════════════
+    // VIEW CONTROLS
+    // ══════════════════════════════════════════════
+    function setView(v) {
+      curView = v;
+      ['month', 'week', 'list'].forEach(x => {
+        document.getElementById(x + 'View').style.display = x === v ? 'block' : 'none';
+        document.getElementById('vt-' + x).classList.toggle('active', x === v);
+      });
+      if (v === 'month') renderMonth();
+      else if (v === 'week') renderWeek();
+      else renderList();
+    }
+
+    function prevPeriod() {
+      if (curView === 'month' || curView === 'list') {
+        curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; }
+      } else {
+        selectedDay -= 7;
+        if (selectedDay < 1) { curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; } selectedDay = new Date(curYear, curMonth + 1, 0).getDate() + selectedDay; }
+      }
+      render();
+    }
+    function nextPeriod() {
+      if (curView === 'month' || curView === 'list') {
+        curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; }
+      } else {
+        const dim = new Date(curYear, curMonth + 1, 0).getDate();
+        selectedDay += 7;
+        if (selectedDay > dim) { selectedDay -= dim; curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; } }
+      }
+      render();
+    }
+    function goToday() {
+      curYear = today.y; curMonth = today.m; selectedDay = today.d;
+      render();
+      if (curView !== 'list') openDayPanel(today.d);
+    }
+    function render() {
+      if (curView === 'month') renderMonth();
+      else if (curView === 'week') renderWeek();
+      else renderList();
+    }
+
+    // ── Layer toggle
+    function toggleLayer(layer, btn) {
+      layers[layer] = !layers[layer];
+      btn.style.background = layers[layer] ? '#fff' : 'transparent';
+      btn.style.boxShadow = layers[layer] ? '0 1px 3px rgba(0,0,0,.08)' : 'none';
+      btn.style.opacity = layers[layer] ? '1' : '.5';
+      render();
+    }
+
+    // ══════════════════════════════════════════════
+    // SIDEBAR / MODALS / GPS
+    // ══════════════════════════════════════════════
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    function openActivityModal() { document.getElementById('actModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function openTodoModal() { document.getElementById('todoModal').classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
+
+    function handleActType(sel) {
+      const needGPS = sel.value === 'visit' || sel.value === 'demo';
+      document.getElementById('gpsSection').style.display = needGPS ? 'block' : 'none';
+      if (needGPS) { document.getElementById('gpsIdle').style.display = 'flex'; document.getElementById('gpsLoading').style.display = 'none'; document.getElementById('gpsResult').style.display = 'none'; }
+    }
+
+    function doGPS() {
+      document.getElementById('gpsIdle').style.display = 'none';
+      document.getElementById('gpsLoading').style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('gpsLoading').style.display = 'none';
+        document.getElementById('gpsResult').style.display = 'block';
+        const r = Math.random();
+        const box = document.getElementById('gpsBox');
+        const dist = document.getElementById('gpsDist');
+        const status = document.getElementById('gpsStatus');
+        if (r < 0.5) {
+          box.className = 'gps-box ok'; dist.textContent = '42 meter';
+          status.className = 'gps-ok'; status.textContent = 'Terverifikasi';
+        } else if (r < 0.8) {
+          box.className = 'gps-box near'; dist.textContent = '310 meter';
+          status.className = 'gps-near'; status.textContent = 'Mendekati';
+        } else {
+          box.className = 'gps-box fail'; dist.textContent = '850 meter';
+          status.className = 'gps-fail'; status.textContent = 'Di Luar Jangkauan';
+        }
+      }, 1800);
+    }
+
+    function saveActivity() {
+      closeModal('actModal');
+      showToast('success', 'Aktivitas Disimpan!', 'Aktivitas baru berhasil dicatat dan ditambahkan ke kalender.');
+    }
+    function saveTodo() {
+      closeModal('todoModal');
+      showToast('success', 'Tugas Ditambahkan!', 'Tugas baru berhasil disimpan.');
+    }
+
+    // ── Toast
+    let toastCount = 0;
+    function showToast(type, title, msg) {
+      if (toastCount >= 3) { const f = document.getElementById('toastContainer').firstChild; if (f) f.remove(); }
+      const icons = {
+        success: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10B981"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        error: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#EF4444"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        warning: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#F59E0B"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+        info: '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#3B82F6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      };
+      const id = 'toast-' + Date.now();
+      const el = document.createElement('div');
+      el.className = 'toast'; el.id = id;
+      el.innerHTML = `<span class="toast-icon" style="display:flex;align-items:center;">${icons[type] || icons['info']}</span><div><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div></div><span class="toast-close" onclick="document.getElementById('${id}').remove()">×</span>`;
+      document.getElementById('toastContainer').appendChild(el);
+      toastCount++;
+      setTimeout(() => { if (document.getElementById(id)) { document.getElementById(id).remove(); toastCount = Math.max(0, toastCount - 1); } }, 4000);
+    }
+
+    // ══════════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════════
+    renderMonth();
+    // Auto-open today's panel after a brief delay
+    setTimeout(() => openDayPanel(today.d), 400);
+    setTimeout(() => showToast('info', 'Aktivitas Hari Ini', 'Anda memiliki 4 item terjadwal hari ini — 1 tugas terlambat.'), 700);
+  </script>
+</body>
+
+</html>

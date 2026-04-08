@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaCRM — Unggah Prospek Massal</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #3B5BDB;
+      --primary-light: #EEF2FF;
+      --primary-dark: #2F4AC7;
+      --sidebar-bg: #0F172A;
+      --sidebar-text: #94A3B8;
+      --success: #0E9F6E;
+      --warning: #E3A008;
+      --danger: #F05252;
+      --surface: #F8FAFC;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --text-primary: #0F172A;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--surface);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR (Identical to prospect.html) */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: width .3s cubic-bezier(.4, 0, .2, 1);
+      border-right: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .sidebar.collapsed {
+      width: 68px;
+    }
+
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      min-height: 64px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .logo-text {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--sidebar-text);
+      font-weight: 500;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .sidebar.collapsed .logo-text,
+    .sidebar.collapsed .logo-sub {
+      opacity: 0;
+      width: 0;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(148, 163, 184, .4);
+      padding: 16px 20px 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .sidebar-section-label {
+      opacity: 0;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      overflow-x: hidden;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 10px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      margin-bottom: 2px;
+      position: relative;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, .06);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(59, 91, 219, .3), rgba(124, 58, 237, .2));
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(59, 91, 219, .4);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: var(--primary);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      opacity: .8;
+    }
+
+    .nav-item.active .nav-icon {
+      opacity: 1;
+    }
+
+    .nav-label {
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-label {
+      opacity: 0;
+      width: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: #F05252;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      transition: opacity .2s;
+    }
+
+    .sidebar.collapsed .nav-badge {
+      opacity: 0;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      overflow: hidden;
+    }
+
+    .user-card:hover {
+      background: rgba(255, 255, 255, .06);
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--sidebar-text);
+      white-space: nowrap;
+    }
+
+    .sidebar.collapsed .user-info {
+      opacity: 0;
+      width: 0;
+    }
+
+    /* TOPBAR (Identical to prospect.html) */
+    .topbar {
+      position: fixed;
+      left: 260px;
+      top: 0;
+      right: 0;
+      height: 64px;
+      background: rgba(248, 250, 252, .92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      z-index: 90;
+      transition: left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .topbar.expanded {
+      left: 68px;
+    }
+
+    .toggle-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .breadcrumb span {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb .current {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 38px;
+      width: 260px;
+      transition: all .2s;
+    }
+
+    .search-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 8px;
+      height: 8px;
+      background: #F05252;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid transparent;
+    }
+
+    .topbar-user:hover {
+      background: #fff;
+      border-color: var(--border);
+    }
+
+    .topbar-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3B5BDB, #7C3AED);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .topbar-uname {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .topbar-urole {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 260px;
+      padding-top: 64px;
+      min-height: 100vh;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .main.expanded {
+      margin-left: 68px;
+    }
+
+    .content {
+      padding: 28px;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .card-shadow {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .04), 0 4px 16px rgba(0, 0, 0, .04);
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(59, 91, 219, .3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(59, 91, 219, .35);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: var(--text-muted);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: none;
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface);
+      color: var(--text-primary);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      transition: all .2s;
+      outline: none;
+      background: #fff;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
+    }
+
+    /* ANIMATIONS */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp .4s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .d1 {
+      animation-delay: .05s
+    }
+
+    .d2 {
+      animation-delay: .1s
+    }
+
+    /* STEPS UI */
+    .step-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 24px;
+      padding: 0 20px;
+    }
+
+    .step-line {
+      position: absolute;
+      top: 16px;
+      left: 40px;
+      right: 40px;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .step-line-fill {
+      position: absolute;
+      top: 16px;
+      left: 40px;
+      height: 2px;
+      background: var(--primary);
+      z-index: 2;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .step-item {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: color 0.3s;
+    }
+
+    .step-item.active .step-circle {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+
+    .step-item.active .step-label {
+      color: var(--text-primary);
+    }
+
+    .step-item.completed .step-circle {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .step-item.completed .step-label {
+      color: var(--text-primary);
+    }
+
+    /* DRAG & DROP ZONE */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 60px 40px;
+      text-align: center;
+      background: #FAFBFF;
+      transition: all .3s cubic-bezier(.4, 0, .2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: scale(1.01);
+    }
+
+    .drop-zone-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(59, 91, 219, .08);
+      color: var(--primary);
+      transition: transform 0.3s;
+    }
+
+    .drop-zone:hover .drop-zone-icon,
+    .drop-zone.dragover .drop-zone-icon {
+      transform: translateY(-5px);
+    }
+
+    .drop-zone-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .drop-zone-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 340px;
+      margin: 0 auto 24px;
+    }
+
+    /* UPLOAD PROGRESS */
+    .upload-progress {
+      display: none;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .progress-bar-container {
+      height: 6px;
+      background: var(--surface);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress-value {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.1s ease;
+      border-radius: 10px;
+    }
+
+    /* MAPPING TABLE */
+    .mapping-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .mapping-table th {
+      background: #F8FAFC;
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+    }
+
+    .mapping-table td {
+      padding: 14px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+    }
+
+    .mapping-table tr:hover {
+      background: #FAFBFF;
+    }
+
+    .file-input-hidden {
+      display: none;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+      animation: fadeUp 0.4s ease forwards;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexaCRM</div>
+        <div class="logo-sub">Edisi Sales</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Menu Utama</div>
+      <a href="index.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span class="nav-label">Beranda</span>
+      </a>
+      <a href="prospect.html" class="nav-item active">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="nav-label">Prospek Saya</span>
+        <span class="nav-badge">24</span>
+      </a>
+      <a href="activities.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="nav-label">Aktivitas</span>
+      </a>
+      <a href="products.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+        </svg>
+        <span class="nav-label">Produk</span>
+      </a>
+      <div class="sidebar-section-label" style="margin-top:8px">Lainnya</div>
+      <a href="help.html" class="nav-item">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="nav-label">Bantuan</span>
+      </a>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">RD</div>
+        <div class="user-info">
+          <div class="user-name">Rizky Dwi</div>
+          <div class="user-role">Sales · Surabaya</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════ TOPBAR ══════════ -->
+  <header class="topbar" id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div class="breadcrumb">
+      <span>Beranda</span>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <a href="prospect.html" style="text-decoration:none;color:var(--text-secondary)">Prospek Saya</a>
+      <span style="color:var(--text-muted);font-size:12px">›</span>
+      <span class="current">Unggah Massal</span>
+    </div>
+    <div class="topbar-actions" style="margin-left: auto;">
+      <button class="icon-btn">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <div class="notif-dot"></div>
+      </button>
+      <div class="topbar-user">
+        <div class="topbar-avatar">RD</div>
+        <div>
+          <div class="topbar-uname">Rizky Dwi</div>
+          <div class="topbar-urole">Sales Rep</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="main" id="main">
+    <div class="content">
+
+      <!-- Page Header -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px" class="fade-up">
+        <a href="prospect.html" class="icon-btn" style="border-radius: 12px; width: 42px; height: 42px;">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </a>
+        <div>
+          <h1 style="font-size:24px;font-weight:800;letter-spacing:-.5px; color:var(--text-primary)">Unggah Prospek
+            Massal</h1>
+          <p style="font-size:13px;color:var(--text-secondary);margin-top:2px">Tambahkan puluhan hingga ratusan prospek
+            baru sekaligus dari format Excel.</p>
+        </div>
+        <div style="margin-left: auto;">
+          <button class="btn btn-outline" onclick="alert('Mengunduh template...')">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Unduh Template Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Card Container -->
+      <div class="card card-shadow fade-up d1" style="max-width: 900px; margin: 0 auto;">
+
+        <!-- Steps Indicator -->
+        <div style="padding: 30px 40px 10px;">
+          <div class="step-container">
+            <div class="step-line"></div>
+            <div class="step-line-fill" id="stepLineFill" style="width: 0%;"></div>
+            <div class="step-item active" id="step1-indicator">
+              <div class="step-circle">
+                <span>1</span>
+              </div>
+              <span class="step-label">Unggah File</span>
+            </div>
+            <div class="step-item" id="step2-indicator">
+              <div class="step-circle">
+                <span>2</span>
+              </div>
+              <span class="step-label">Pemetaan Kolom</span>
+            </div>
+            <div class="step-item" id="step3-indicator">
+              <div class="step-circle">
+                <span>3</span>
+              </div>
+              <span class="step-label">Selesai</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 1: Upload -->
+        <div id="panel1" class="panel active" style="padding: 20px 40px 40px;">
+          <input type="file" id="fileInput" class="file-input-hidden" accept=".xlsx, .xls, .csv"
+            onchange="handleFileSelect(event)">
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <div class="drop-zone-icon">
+              <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="drop-zone-title">Tarik & Lepas File ke Sini</h3>
+            <p class="drop-zone-desc">Unggah file berektensi .xlsx, .xls, atau .csv (Maksimal 5MB). Pastikan file
+              menggunakan template standar NexaCRM.</p>
+            <button class="btn btn-primary"
+              onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+              Pilih File dari Komputer
+            </button>
+          </div>
+
+          <div class="upload-progress" id="uploadProgress">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div
+                style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div style="flex:1">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text-primary)" id="fileNameDisp">
+                    prospek_april.xlsx</div>
+                  <div style="font-size:12px;font-weight:600;color:var(--primary)" id="progressVal">0%</div>
+                </div>
+                <div style="font-size:11px;color:var(--text-secondary)">Mengunggah...</div>
+                <div class="progress-bar-container">
+                  <div class="progress-value" id="progressBar"></div>
+                </div>
+              </div>
+              <button class="btn-ghost" style="padding: 4px; border-radius: 6px; cursor:pointer;"
+                onclick="cancelUpload()">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
+            <a href="prospect.html" class="btn btn-ghost">Batal</a>
+            <button class="btn btn-primary" id="btnNext1" disabled onclick="goToStep2()">Lanjutkan Pemetaan</button>
+          </div>
+        </div>
+
+        <!-- Panel 2: Mapping -->
+        <div id="panel2" class="panel" style="padding: 20px 40px 40px;">
+          <div style="margin-bottom:20px">
+            <h3 style="font-size:18px;font-weight:700;letter-spacing:-.4px">Pemetaan Kolom</h3>
+            <p style="font-size:13px;color:var(--text-secondary);margin-top:4px">Cocokkan kolom di file Excel Anda
+              dengan kolom data di NexaCRM.</p>
+          </div>
+
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden;">
+            <table class="mapping-table">
+              <thead>
+                <tr>
+                  <th style="width: 40%;">Kolom Data NexaCRM</th>
+                  <th style="width: 10%;"></th>
+                  <th>Kolom File Excel</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div style="font-weight:600;color:var(--text-primary)">Nama Lengkap <span
+                        style="color:var(--danger)">*</span></div>
+                    <div style="font-size:11px;color:var(--text-secondary);margin-top: 2px;">Wajib diisi</div>
+                  </td>
+                  <td style="text-align: center;"><svg width="16" height="16" fill="none" stroke="#94A3B8"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg></td>
+                  <td>
+                    <select class="form-select">
+                      <option value="">Pilih Kolom...</option>
+                      <option selected>Nama Klien</option>
+                      <option>Perusahaan</option>
+                      <option>Nomor Telepon</option>
+                      <option>Email</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="font-weight:600;color:var(--text-primary)">Nomor WhatsApp <span
+                        style="color:var(--danger)">*</span></div>
+                    <div style="font-size:11px;color:var(--text-secondary);margin-top: 2px;">Wajib diisi</div>
+                  </td>
+                  <td style="text-align: center;"><svg width="16" height="16" fill="none" stroke="#94A3B8"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg></td>
+                  <td>
+                    <select class="form-select">
+                      <option value="">Pilih Kolom...</option>
+                      <option>Nama Klien</option>
+                      <option>Perusahaan</option>
+                      <option selected>Nomor Telepon</option>
+                      <option>Email</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="font-weight:600;color:var(--text-primary)">Perusahaan</div>
+                    <div style="font-size:11px;color:var(--text-secondary);margin-top: 2px;">Opsional</div>
+                  </td>
+                  <td style="text-align: center;"><svg width="16" height="16" fill="none" stroke="#94A3B8"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg></td>
+                  <td>
+                    <select class="form-select">
+                      <option value="">Pilih Kolom...</option>
+                      <option>Nama Klien</option>
+                      <option selected>Perusahaan</option>
+                      <option>Nomor Telepon</option>
+                      <option>Email</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="font-weight:600;color:var(--text-primary)">Alamat Email</div>
+                    <div style="font-size:11px;color:var(--text-secondary);margin-top: 2px;">Opsional</div>
+                  </td>
+                  <td style="text-align: center;"><svg width="16" height="16" fill="none" stroke="#94A3B8"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg></td>
+                  <td>
+                    <select class="form-select">
+                      <option value="">Pilih Kolom...</option>
+                      <option>Nama Klien</option>
+                      <option>Perusahaan</option>
+                      <option>Nomor Telepon</option>
+                      <option selected>Email</option>
+                    </select>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
+            <button class="btn btn-outline" onclick="goToStep1()">Kembali</button>
+            <button class="btn btn-primary" onclick="goToStep3()">Mulai Impor Data</button>
+          </div>
+        </div>
+
+        <!-- Panel 3: Success -->
+        <div id="panel3" class="panel" style="padding: 40px; text-align:center;">
+          <div
+            style="width: 80px; height: 80px; border-radius: 50%; background: #F0FDF4; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: var(--success); box-shadow: 0 0 0 8px rgba(14, 159, 110, 0.1);">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 style="font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary);margin-bottom:8px">
+            Impor Data Berhasil</h2>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:24px">Sebanyak <strong
+              style="color:var(--text-primary)">42 prospek baru</strong> berhasil ditambahkan ke dalam database Anda
+            tanpa ada duplikasi.</p>
+
+          <div style="display:flex;gap:12px;justify-content:center">
+            <a href="prospect.html" class="btn btn-primary" style="padding: 10px 24px;">Lihat Prospek</a>
+            <button class="btn btn-outline" style="padding: 10px 24px;" onclick="location.reload()">Unggah Lagi</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      document.getElementById('topbar').classList.toggle('expanded');
+      document.getElementById('main').classList.toggle('expanded');
+    }
+
+    // Drag & drop logic
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    });
+
+    function handleFileSelect(e) {
+      handleFiles(e.target.files);
+    }
+
+    let uploadInterval;
+
+    function handleFiles(files) {
+      if (files.length > 0) {
+        const file = files[0];
+        document.getElementById('fileNameDisp').innerText = file.name;
+
+        // hide dropzone, show progress
+        document.getElementById('dropZone').style.display = 'none';
+        document.getElementById('uploadProgress').style.display = 'block';
+        document.getElementById('btnNext1').disabled = true;
+
+        // mock progress
+        let progress = 0;
+        const progressVal = document.getElementById('progressVal');
+        const progressBar = document.getElementById('progressBar');
+
+        clearInterval(uploadInterval);
+        uploadInterval = setInterval(() => {
+          progress += Math.floor(Math.random() * 15) + 5;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(uploadInterval);
+            setTimeout(() => {
+              document.getElementById('btnNext1').disabled = false;
+              document.getElementById('btnNext1').innerText = "Lanjutkan Pemetaan";
+            }, 500);
+          }
+          progressVal.innerText = progress + "%";
+          progressBar.style.width = progress + "%";
+        }, 200);
+      }
+    }
+
+    function cancelUpload() {
+      clearInterval(uploadInterval);
+      fileInput.value = "";
+      document.getElementById('uploadProgress').style.display = 'none';
+      document.getElementById('dropZone').style.display = 'block';
+      document.getElementById('btnNext1').disabled = true;
+      document.getElementById('progressVal').innerText = "0%";
+      document.getElementById('progressBar').style.width = "0%";
+    }
+
+    // Navigation logic
+    function goToStep(step) {
+      // Hide all panels
+      document.getElementById('panel1').classList.remove('active');
+      document.getElementById('panel2').classList.remove('active');
+      document.getElementById('panel3').classList.remove('active');
+
+      // Reset step indicators
+      document.getElementById('step1-indicator').classList.remove('active', 'completed');
+      document.getElementById('step2-indicator').classList.remove('active', 'completed');
+      document.getElementById('step3-indicator').classList.remove('active', 'completed');
+
+      // Set specific step classes and panel
+      if (step === 1) {
+        document.getElementById('panel1').classList.add('active');
+        document.getElementById('step1-indicator').classList.add('active');
+        document.getElementById('stepLineFill').style.width = '0%';
+      }
+      else if (step === 2) {
+        document.getElementById('panel2').classList.add('active');
+        document.getElementById('step1-indicator').classList.add('completed');
+        document.getElementById('step2-indicator').classList.add('active');
+        document.getElementById('stepLineFill').style.width = '50%';
+      }
+      else if (step === 3) {
+        document.getElementById('panel3').classList.add('active');
+        document.getElementById('step1-indicator').classList.add('completed');
+        document.getElementById('step2-indicator').classList.add('completed');
+        document.getElementById('step3-indicator').classList.add('completed');
+        document.getElementById('stepLineFill').style.width = '100%';
+      }
+    }
+
+    function goToStep1() { goToStep(1); }
+    function goToStep2() { goToStep(2); }
+    function goToStep3() {
+      // Mocking a loading state before success
+      let btn = event.target;
+      let origText = btn.innerText;
+      btn.innerHTML = 'Memproses Data...';
+      btn.style.opacity = '0.8';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        goToStep(3);
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }, 1000);
+    }
+
+  </script>
+</body>
+
+</html>
