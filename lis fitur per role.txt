@@ -1,0 +1,39 @@
+1. ROLE: ADMIN (System Administrator)
+Fokus: Pengaturan sistem, pemeliharaan (maintenance), dan manajemen konfigurasi terpusat.
+
+- user management: menambah user baru, mengatur role (termasuk setting Supervisor berangkap Sales), assign wilayah penugasan, reset password, dan aktivasi akun CRM.
+- master data management: mengelola tipe kategori customer (pengelompokan penjualan), product catalog (SKU/Harga), lead source, status prospect, dan format kelengkapan sub-alamat (hierarki detail: provinsi, kota, kelurahan, dst). 
+- system settings: mengonfigurasi batas toleransi radius GPS Verification, aturan perpindahan status prospect (auto/manual movement rules), set kalender hari kerja/libur, dan pengaktifan notifikasi.
+- audit log: memantau riwayat login, melacak histori setiap perubahan data beserta rekaman IP Address-nya, dan melakukan export log sistem.
+- announcements: membuat dan mempublikasikan pengumuman sistem (maintenance/pembaruan) secara selektif ke departemen tertentu.
+- backup & restore: mengekspor semua data mentah ke database (JSON/Excel), memulihkan sistem, dan me-reset aplikasi.
+
+
+2. ROLE: DIRECTOR (Executive Level)
+Fokus: Analisis bisnis (helicopter view), pelaporan menyeluruh, dan penentuan target pendapatan.
+
+- executive dashboard: visualisasi detail grafik Global KPIs, tren pendapatan perusahaan, lead funnel status prospect, chart distribusi produk, dan ranking performa seluruh sales.
+- global reports & analytics: fitur mem-filter, generate, dan mengekspor (PDF/Excel) seluruh area laporan (perilaku prospect, kinerja kunjungan lapangan, tracking complain, dan omzet transaksi).
+- sales target management: menetapkan angka patokan jumlah closing per transaksi dan pagu target nominal pendapatan bulanan tiap armada sales.
+- full access privileges: mendapat hak akses administratif penuh untuk sewaktu-waktu mengubah master data dasar maupun struktur user.
+- announcements: menyiarkan kebijakan instruksi atau informasi eksklusif untuk langsung dikirim ke radar dashboard seluruh karyawan.
+
+
+3. ROLE: SUPERVISOR (Sales Manager)
+Fokus: Manajemen tim (team oversight), pemantauan jadwal bawahan, tanggap keluhan, dan evaluasi eksekusi lapangan.
+
+- team dashboard: layar pemantauan Team KPIs, total prospek aktif tim, notifikasi task yang kadaluarsa (overdue), serta pantauan jumlah komplain masuk/tertangan dari klien dalam grupnya.
+- sales management & hybrid role: memiliki kapabilitas ganda bertindak sebagai Sales lapangan (dapat memegang list prospek dan wajib melakukan Visit/Kunjungan rutin), beserta kemampuan manajerial untuk melihat rasio win/loss serta list pelanggan dari tiap anak buah.
+- schedule & to-do monitor: sanggup melihat sinkronisasi tampilan kalender (calendar activity view) detail agenda harian yang persis seperti yang menempel di HP masing-masing anak buah, beserta tombol push reminder.
+- lead map & gps monitor: peta interaktif sebaran lokasi klien milik tim, memantau kesesuaian titik koordinat visit, durasi lama singgah sales, serta bukti foto check-in tim di lapangan aslinya.
+- team reports: eksport laporan produktivitas khusus rekap pencapaian individu, total durasi aktivitas, dan rekapan keluhan khusus untuk deretan absensi sales yang dipimpinnya.
+
+
+4. ROLE: SALES (Field / Account Executive)
+Fokus: Manajemen prospek, operasional kunjungan valid (foto/durasi), pencapaian komersil, dan relasi pelanggan (customer experience).
+
+- sales dashboard: tracking bar pencapaian target komisi, summary KPI aktivitas harian, akumulasi estimasi deal berjalan, dan alert to-do pekerjaan.
+- customer & prospect management: input prospek dengan spesifikasi pemisahan 3 jenis letak rinci (Alamat Kirim, Alamat Visit, Alamat Tagih), pemilihan kategori spesifik customer, fitur fasilitas import masal template data penjualan terkait sample, serta otomasi alur/rule pergerakan tahapan proses status funnel prospect. Mendukung kapabilitas eksport (Export options).
+- aktivitas visit & durasi: kalender visual jadwal lapangan, penambahan mekanisme strict 'Check-In' dan 'Check-Out' terintegrasi GPS pada tiap kunjungan pemasaran yang diwajibkan menyertakan lampiran foto kunjungan beserta kalkulasi durasi aktual waktu temu klien.
+- complain & customer experience: modul dedikatif penampungan dan update penanganan pengaduan (Complain) yang diajukan pelanggan, dikolaborasikan bersama sistem pop-up Support Reminder (alarm otomatis pengingat ucapan hari ulang tahun pelanggan, perayaan pembukaan cabang baru, hingga ucapan libur hari raya).
+- transactions & product: opsi mengunci data pembelian yang sah, mencatat total konversi faktur akhir ke pembukuan target (sambil terus mampu mengecek perbandingan list harga katalog read-only demi penawaran harian).

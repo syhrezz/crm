@@ -1,0 +1,5 @@
+Nama Modul
+User Role
+Fitur yang dibutuhkan
+Sales Activity
+Administrator
