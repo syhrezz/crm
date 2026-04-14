@@ -226,13 +226,8 @@
       gap: 10px;
       padding: 10px 12px;
       border-radius: 10px;
-      cursor: pointer;
       transition: all .2s;
       overflow: hidden;
-    }
-
-    .user-card:hover {
-      background: rgba(255, 255, 255, .06);
     }
 
     .user-avatar {
@@ -1260,18 +1255,37 @@
       animation-delay: .15s
     }
 
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      height: 38px;
+      flex: 1;
+      max-width: 400px;
+      transition: all .2s;
     }
 
-    ::-webkit-scrollbar-track {
-      background: transparent
+    .search-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 91, 219, .1);
     }
 
-    ::-webkit-scrollbar-thumb {
-      background: #CBD5E1;
-      border-radius: 10px
+    .search-bar input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      width: 100%;
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
     }
   </style>
 </head>
@@ -1349,13 +1363,6 @@
       <span>Beranda</span>
       <span style="color:var(--text-muted);font-size:12px">›</span>
       <span class="current">Produk</span>
-    </div>
-    <div class="search-bar">
-      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
-        <circle cx="11" cy="11" r="8" stroke-width="2" />
-        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
-      </svg>
-      <input type="text" id="searchInput" placeholder="Cari nama produk, SKU, komposisi…" oninput="applyFilters()" />
     </div>
     <div class="topbar-actions">
       <button class="icon-btn" onclick="showToast('info','Notifikasi','3 notifikasi belum dibaca')">
@@ -1535,6 +1542,13 @@
         <div style="flex:1;min-width:0">
           <!-- Toolbar -->
           <div class="filter-bar">
+            <div class="search-bar">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+                <circle cx="11" cy="11" r="8" stroke-width="2" />
+                <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+              </svg>
+              <input type="text" id="searchInput" placeholder="Cari nama produk, SKU, komposisi…" oninput="applyFilters()" />
+            </div>
             <select class="filter-select" onchange="doSort(this.value)">
               <option value="">Urutkan: Relevansi</option>
               <option value="name-asc">Nama A–Z</option>

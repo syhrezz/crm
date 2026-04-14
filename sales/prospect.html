@@ -3,13 +3,15 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>NexaCRM — Prospek Saya</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         :root {
             --primary: #3B5BDB;
@@ -227,14 +229,10 @@
             gap: 10px;
             padding: 10px 12px;
             border-radius: 10px;
-            cursor: pointer;
             transition: all .2s;
             overflow: hidden;
         }
 
-        .user-card:hover {
-            background: rgba(255, 255, 255, .06);
-        }
 
         .user-avatar {
             width: 34px;
@@ -336,7 +334,8 @@
             border-radius: 10px;
             padding: 0 14px;
             height: 38px;
-            width: 260px;
+            flex: 1;
+            max-width: 400px;
             transition: all .2s;
         }
 
@@ -740,6 +739,48 @@
             grid-template-columns: repeat(5, 1fr);
             gap: 12px;
             align-items: end;
+        }
+
+        .filter-panel { min-width: 650px; }
+
+        /* Custom Flatpickr Theme */
+        .flatpickr-calendar {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif !important;
+        }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+        .flatpickr-day.inRange {
+            background: var(--primary-light) !important;
+            border-color: transparent !important;
+            box-shadow: -5px 0 0 var(--primary-light), 5px 0 0 var(--primary-light) !important;
+        }
+        .flatpickr-months .flatpickr-month {
+            color: var(--text-primary);
+            fill: var(--text-primary);
+        }
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            font-weight: 700;
+        }
+
+        .date-range-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .date-range-wrapper input {
+            padding-right: 40px !important;
+            cursor: pointer;
+        }
+        .date-range-wrapper .calendar-icon {
+            position: absolute;
+            right: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
         .filter-label {
@@ -1925,10 +1966,249 @@
             cursor:pointer;
             font-family:inherit;
         }
+        /* ===== MOBILE OVERLAY ===== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .55);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity .3s ease;
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+        }
+
+        /* ===== TABLET (≤ 900px) ===== */
+        @media (max-width: 900px) {
+            .sidebar { width: 68px; }
+            .sidebar .logo-text, .sidebar .logo-sub, .sidebar .sidebar-section-label,
+            .sidebar .nav-label, .sidebar .nav-badge, .sidebar .user-info {
+                opacity: 0; width: 0;
+            }
+            .topbar { left: 68px; }
+            .main { margin-left: 68px; }
+        }
+
+        /* ===== MOBILE (≤ 768px) ===== */
+        @media (max-width: 768px) {
+            /* --- Sidebar: Off-canvas drawer --- */
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+                transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+                box-shadow: none;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+                box-shadow: 16px 0 48px rgba(0,0,0,.2);
+            }
+            .sidebar.mobile-open .logo-text, .sidebar.mobile-open .logo-sub,
+            .sidebar.mobile-open .sidebar-section-label, .sidebar.mobile-open .nav-label,
+            .sidebar.mobile-open .nav-badge, .sidebar.mobile-open .user-info {
+                opacity: 1; width: auto;
+            }
+            .sidebar.collapsed {
+                width: 280px; transform: translateX(-100%);
+            }
+            .sidebar.collapsed.mobile-open {
+                transform: translateX(0);
+            }
+            .sidebar.collapsed .logo-text, .sidebar.collapsed .logo-sub,
+            .sidebar.collapsed .sidebar-section-label, .sidebar.collapsed .nav-label,
+            .sidebar.collapsed .nav-badge, .sidebar.collapsed .user-info {
+                opacity: 1; width: auto;
+            }
+            .sidebar-overlay.show {
+                display: block; opacity: 1;
+            }
+
+            /* --- Topbar --- */
+            .topbar {
+                left: 0 !important;
+                padding: 0 16px;
+                height: 56px;
+                gap: 10px;
+            }
+            .topbar.expanded { left: 0 !important; }
+            .search-bar { display: none; }
+            .breadcrumb { display: none; }
+            .mobile-topbar-title { display: flex !important; }
+            .topbar-uname, .topbar-urole { display: none; }
+            .topbar-user { padding: 6px; gap: 0; }
+            .topbar-user svg:last-child { display: none; }
+
+            /* --- Main --- */
+            .main { margin-left: 0 !important; padding-top: 56px; }
+            .main.expanded { margin-left: 0 !important; }
+            .content { padding: 16px; }
+
+            /* --- Page header --- */
+            .page-header-mobile {
+                flex-direction: column !important;
+                gap: 14px !important;
+            }
+            .page-header-mobile h1 { font-size: 20px !important; }
+            .page-actions-mobile {
+                width: 100%;
+            }
+            .page-actions-mobile .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            /* --- KPI bar --- */
+            .kpi-bar-mobile {
+                flex-wrap: wrap !important;
+            }
+            .kpi-bar-mobile > div {
+                min-width: calc(50% - 1px) !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--border);
+            }
+            .kpi-bar-mobile > div:nth-child(odd) {
+                border-right: 1px solid var(--border) !important;
+            }
+            .kpi-bar-mobile > div:nth-last-child(-n+2) {
+                border-bottom: none;
+            }
+
+            /* --- Toolbar --- */
+            .toolbar-mobile {
+                flex-wrap: wrap !important;
+                gap: 10px !important;
+            }
+            .toolbar-mobile .search-bar {
+                display: flex !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                order: 10;
+            }
+
+            /* --- Filter panel --- */
+            .filter-panel {
+                min-width: unset !important;
+                padding: 14px 16px;
+                overflow-x: auto;
+            }
+            .filter-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .filter-grid > div:last-child {
+                grid-column: 1 / -1;
+            }
+
+            /* --- Table view: Card-based --- */
+            .table-scroll-wrapper {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .table-scroll-wrapper table {
+                min-width: 900px;
+            }
+
+            /* --- Card view: Single column --- */
+            .leads-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .lead-card { padding: 16px; border-radius: 12px; }
+
+            /* --- Pagination --- */
+            .pagination-bar {
+                flex-direction: column !important;
+                gap: 12px !important;
+                align-items: stretch !important;
+            }
+            .pagination { justify-content: center; }
+            .page-btn {
+                width: 36px; height: 36px;
+            }
+
+            /* --- Drawer: Full-screen on mobile --- */
+            .drawer {
+                width: 100vw;
+                max-width: 100vw;
+            }
+            .drawer-header { padding: 16px; }
+            .tab-bar { padding: 0 16px; overflow-x: auto; }
+            .tab-btn { padding: 10px 14px; font-size: 12px; }
+            .tab-content { padding: 16px; }
+            .stat-bar {
+                gap: 12px; padding: 12px 16px;
+            }
+            .stat-val { font-size: 16px; }
+
+            /* --- Kanban --- */
+            .kanban-cols {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            /* --- Map --- */
+            .map-placeholder { height: 200px; }
+
+            /* --- Modal --- */
+            .modal {
+                width: 100%; max-width: 100vw;
+                max-height: 100vh;
+                border-radius: 16px 16px 0 0;
+                margin-top: auto;
+            }
+            .modal-lg { width: 100%; }
+            .modal-overlay { align-items: flex-end; }
+            .modal-header { padding: 18px 16px 14px; }
+            .modal-body { padding: 16px; }
+            .modal-footer {
+                padding: 12px 16px;
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+            .confirm-modal { width: 100%; }
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .form-row-3 { grid-template-columns: 1fr; gap: 0; }
+            .product-row {
+                grid-template-columns: 1fr 60px;
+                gap: 6px;
+            }
+
+            /* --- Toast --- */
+            .toast-container {
+                left: 16px; right: 16px; top: 68px;
+            }
+            .toast { min-width: unset; max-width: 100%; }
+
+            /* --- Buttons: Touch-friendly --- */
+            .btn { min-height: 40px; padding: 10px 16px; }
+            .btn-sm { min-height: 36px; padding: 8px 14px; }
+            .icon-btn { width: 40px; height: 40px; }
+            .toggle-btn { width: 40px; height: 40px; }
+
+            /* --- View toggle --- */
+            .view-toggle { display: none; }
+        }
+
+        /* ===== SMALL MOBILE (≤ 480px) ===== */
+        @media (max-width: 480px) {
+            .content { padding: 12px; }
+            .lead-card { padding: 14px; }
+            .filter-grid { grid-template-columns: 1fr; }
+            .drawer-header { padding: 14px 12px; gap: 10px; }
+            .tab-content { padding: 14px 12px; }
+            .stat-bar { padding: 10px 12px; gap: 8px; }
+            .stat-val { font-size: 14px; }
+            .kanban-col { padding: 10px; }
+            .tl-card { padding: 12px; }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- SIDEBAR OVERLAY (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
     <!-- ══════════ SIDEBAR ══════════ -->
     <nav class="sidebar" id="sidebar">
@@ -2002,13 +2282,7 @@
             <span style="color:var(--text-muted);font-size:12px">›</span>
             <span class="current">Prospek Saya</span>
         </div>
-        <div class="search-bar">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
-                <circle cx="11" cy="11" r="8" stroke-width="2" />
-                <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
-            </svg>
-            <input type="text" placeholder="Cari nama, perusahaan, telepon…" oninput="filterTable(this.value)" />
-        </div>
+        <div class="mobile-topbar-title" style="display:none;flex:1;font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-.3px">Prospek Saya</div>
         <div class="topbar-actions">
             <button class="icon-btn" onclick="showToast('info','Notifikasi','3 notifikasi belum dibaca')">
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748B">
@@ -2036,13 +2310,13 @@
 
             <!-- Page Header -->
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px"
-                class="fade-up">
+                class="fade-up page-header-mobile">
                 <div>
                     <h1 style="font-size:22px;font-weight:800;letter-spacing:-.5px">Prospek Saya</h1>
                     <p style="font-size:13px;color:var(--text-secondary);margin-top:3px">Kelola dan pantau semua prospek
                         penjualan Anda</p>
                 </div>
-                <div style="display:flex;gap:10px">
+                <div style="display:flex;gap:10px" class="page-actions-mobile">
                     <a href="prospect-bulk.html" class="btn btn-outline">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -2061,7 +2335,7 @@
 
             <!-- Mini KPI Bar -->
             <div class="card card-shadow fade-up d1" style="margin-bottom:20px;overflow:hidden">
-                <div style="display:flex;gap:0;flex-wrap:wrap">
+                <div class="kpi-bar-mobile" style="display:flex;gap:0;flex-wrap:wrap">
                     <div style="flex:1;min-width:120px;padding:16px 20px;border-right:1px solid var(--border)">
                         <div style="font-size:22px;font-weight:800;letter-spacing:-.5px">24</div>
                         <div style="font-size:11px;color:var(--text-secondary);font-weight:500;margin-top:2px">Total
@@ -2138,7 +2412,14 @@
             </div>
 
             <!-- Toolbar: search, filter, view toggle -->
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap" class="fade-up d2">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap" class="fade-up d2 toolbar-mobile">
+                <div class="search-bar">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+                        <circle cx="11" cy="11" r="8" stroke-width="2" />
+                        <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    <input type="text" placeholder="Cari nama, perusahaan, telepon…" oninput="filterTable(this.value)" />
+                </div>
                 <button class="btn btn-outline btn-sm" onclick="toggleFilter()" id="filterBtn">
                     <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -2148,12 +2429,7 @@
                     <span id="filterBadge"
                         style="display:none;background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px">2</span>
                 </button>
-                <div style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap" id="activeFilters">
-                    <div class="active-filter-chip">Status: Hot <span class="chip-x"
-                            onclick="removeFilter(this)">×</span></div>
-                    <div class="active-filter-chip">Tipe: Perusahaan <span class="chip-x"
-                            onclick="removeFilter(this)">×</span></div>
-                </div>
+                <div style="flex:1" id="activeFilters"></div>
                 <div style="display:flex;align-items:center;gap:8px">
                     <span style="font-size:12px;color:var(--text-secondary)">Urutkan:</span>
                     <select class="filter-select" style="width:160px;font-size:12px;padding:7px 10px">
@@ -2228,7 +2504,12 @@
                     </div>
                     <div>
                         <div class="filter-label">Rentang Tanggal</div>
-                        <input type="date" class="filter-input" />
+                        <div class="date-range-wrapper">
+                            <input type="text" class="filter-input" id="dateRangePicker" placeholder="Pilih Rentang Tanggal" readonly />
+                            <svg class="calendar-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
                 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
@@ -2239,6 +2520,7 @@
 
             <!-- TABLE VIEW -->
             <div id="tableView" class="card card-shadow fade-up d2" style="overflow:hidden;margin-bottom:20px">
+                <div class="table-scroll-wrapper" style="overflow-x:auto">
                 <table id="leadsTable">
                     <thead>
                         <tr>
@@ -2258,8 +2540,9 @@
                         <!-- rows injected by JS -->
                     </tbody>
                 </table>
+                </div>
                 <!-- Pagination -->
-                <div
+                <div class="pagination-bar"
                     style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px">
                     <div style="font-size:12px;color:var(--text-secondary)">Menampilkan <strong>1–10</strong> dari
                         <strong>24</strong> prospek
@@ -3749,11 +4032,28 @@
         }
 
         // ── SIDEBAR TOGGLE
+        function isMobile() { return window.innerWidth <= 768; }
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-            document.getElementById('topbar').classList.toggle('expanded');
-            document.getElementById('main').classList.toggle('expanded');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (isMobile()) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('show');
+                document.body.style.overflow = sidebar.classList.contains('mobile-open') ? 'hidden' : '';
+            } else {
+                sidebar.classList.toggle('collapsed');
+                document.getElementById('topbar').classList.toggle('expanded');
+                document.getElementById('main').classList.toggle('expanded');
+            }
         }
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('mobile-open');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        window.addEventListener('resize', function() { if (!isMobile()) closeMobileSidebar(); });
 
         // ── VIEW TOGGLE
         function switchView(v) {
@@ -3762,6 +4062,8 @@
             document.getElementById('vt-table').classList.toggle('active', v === 'table');
             document.getElementById('vt-card').classList.toggle('active', v === 'card');
         }
+        // Auto card view on mobile
+        if (isMobile()) switchView('card');
 
         // ── FILTER PANEL
         function toggleFilter() {
@@ -3772,14 +4074,13 @@
         function clearFilter() {
             document.getElementById('activeFilters').innerHTML = '';
             document.getElementById('filterBadge').style.display = 'none';
+            if (window.fp) window.fp.clear();
             showToast('info', 'Filter', 'Semua filter direset');
-            document.getElementById('filterPanel').classList.remove('open');
         }
         function applyFilter() {
             showToast('success', 'Filter Diterapkan', 'Menampilkan hasil berdasarkan filter yang dipilih');
-            document.getElementById('filterPanel').classList.remove('open');
         }
-        function removeFilter(el) { el.parentElement.remove(); }
+        function removeFilter(el) { if (el && el.parentElement) el.parentElement.remove(); }
 
         // ── SELECT ALL
         function toggleSelectAll(cb) {
@@ -4285,6 +4586,17 @@
         }
 
         setTimeout(() => showToast('info', 'Prospek Saya', 'Anda memiliki 24 prospek aktif. 3 membutuhkan tindak lanjut hari ini.'), 600);
+
+        // ── FLATPICKR INITIALIZATION
+        window.fp = flatpickr("#dateRangePicker", {
+            mode: "range",
+            dateFormat: "d M Y",
+            prevArrow: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>',
+            nextArrow: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>',
+            onOpen: () => {
+                // Adjust z-index if needed
+            }
+        });
     </script>
 </body>
 

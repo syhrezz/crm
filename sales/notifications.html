@@ -202,14 +202,9 @@
             gap: 10px;
             padding: 10px 12px;
             border-radius: 10px;
-            cursor: pointer;
             transition: all .2s;
             overflow: hidden;
             text-decoration: none;
-        }
-
-        .user-card:hover {
-            background: rgba(255, 255, 255, .06);
         }
 
         .user-avatar {
@@ -323,8 +318,10 @@
             border-radius: 10px;
             padding: 0 14px;
             height: 38px;
-            width: 260px;
+            width: 100%;
+            max-width: 400px;
             transition: all .2s;
+            margin-bottom: 24px;
         }
 
         .search-bar:focus-within {
@@ -707,14 +704,6 @@
             <span style="color:var(--text-muted);font-size:12px">›</span>
             <span class="current">Notifikasi</span>
         </div>
-        <div class="search-bar">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
-                <circle cx="11" cy="11" r="8" stroke-width="2" />
-                <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
-            </svg>
-            <input type="text" placeholder="Cari prospek, produk, aktivitas…" />
-            <span style="font-size:11px;color:#CBD5E1;font-family:'JetBrains Mono',monospace">⌘K</span>
-        </div>
         <div class="topbar-actions">
             <button class="icon-btn" style="background:var(--primary-light); border-color:var(--primary);"
                 data-tip="Notifikasi">
@@ -761,6 +750,15 @@
                         Tandai Semua Dibaca
                     </button>
                 </div>
+            </div>
+
+            <div class="search-bar fade-up d1">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#94A3B8">
+                    <circle cx="11" cy="11" r="8" stroke-width="2" />
+                    <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <input type="text" placeholder="Cari prospek, produk, aktivitas…" />
+                <span style="font-size:11px;color:#CBD5E1;font-family:'JetBrains Mono',monospace">⌘K</span>
             </div>
 
             <div class="card card-shadow fade-up d1">
